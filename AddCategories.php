@@ -2,49 +2,43 @@
 session_start();
 require_once 'db.php';
 
+// Check if the user is logged in and has the right role
+if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'Admin' && $_SESSION['role'] !== 'SuperAdmin')) {
+    header("Location: index.php");
+    exit();
+}
+
 $error = ''; // Initialize an error variable
+$success = ''; // Initialize a success variable
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'];
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $role = 'User'; // Default role is 'User'
-    $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+    if (isset($_POST['category_name']) && !empty(trim($_POST['category_name']))) {
+        $category_name = trim($_POST['category_name']);
 
-    // Check if username already exists
-    $stmt = mysqli_prepare($connection, "SELECT id FROM testt WHERE username = ?");
-    mysqli_stmt_bind_param($stmt, "s", $username);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_store_result($stmt);
-
-    if (mysqli_stmt_num_rows($stmt) > 0) {
-        $error = "Username already exists. Please choose a different username.";
-    } else {
-        // Check if email already exists
-        $stmt = mysqli_prepare($connection, "SELECT id FROM testt WHERE email = ?");
-        mysqli_stmt_bind_param($stmt, "s", $email);
+        // Check if the category already exists
+        $stmt = mysqli_prepare($connection, "SELECT id FROM categories WHERE category_name = ?");
+        mysqli_stmt_bind_param($stmt, "s", $category_name);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_store_result($stmt);
 
         if (mysqli_stmt_num_rows($stmt) > 0) {
-            $error = "Email already exists. Please choose a different email.";
+            $error = "Category already exists.";
         } else {
-            // Insert new user
-            $stmt = mysqli_prepare($connection, "INSERT INTO testt (username, email, pass, role) VALUES (?, ?, ?, ?)");
-            mysqli_stmt_bind_param($stmt, "ssss", $username, $email, $passwordHash, $role);
+            // Prepare an insert statement
+            $stmt = mysqli_prepare($connection, "INSERT INTO categories (category_name) VALUES (?)");
+            mysqli_stmt_bind_param($stmt, "s", $category_name);
 
             if (mysqli_stmt_execute($stmt)) {
-                // Registration successful, show alert
-                echo '<script>window.onload = function() { document.getElementById("custom-alert").style.display = "block"; }</script>';
-                echo '<script>setTimeout(function() { document.getElementById("custom-alert").style.display = "none"; }, 5000);</script>';
-                $error = "Registration successful.";
+                $success = "Category added successfully!";
             } else {
-                $error = "Registration failed.";
+                $error = "Something went wrong. Please try again.";
             }
-        }
-    }
 
-    mysqli_stmt_close($stmt);
+            mysqli_stmt_close($stmt);
+        }
+    } else {
+        $error = "Please enter a category name.";
+    }
 }
 
 mysqli_close($connection);
@@ -54,15 +48,11 @@ mysqli_close($connection);
 <html>
 
 <head>
-    <title>Register</title>
+    <title>Add Category</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
     <style>
         /* Add your CSS styles here */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
-
-        i {
-            cursor: pointer;
-        }
 
         * {
             margin: 0;
@@ -78,11 +68,6 @@ mysqli_close($connection);
             align-items: center;
             justify-content: center;
             background: #3c41a1;
-        }
-
-        ::selection {
-            color: #fff;
-            background: #5372F0;
         }
 
         .wrapper {
@@ -235,58 +220,54 @@ mysqli_close($connection);
             border-radius: 5px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             transition: all 1000;
-
             display: none;
             z-index: 1000;
+        }
+
+        .alert.error {
+            background-color: #dc3545;
         }
     </style>
 </head>
 
 <body>
     <div class="wrapper">
-        <header>Register</header>
-        <form action="register.php" method="POST">
+        <header>Add Category</header>
+        <form action="AddCategories.php" method="POST">
             <div class="field">
                 <div class="input-area">
-                    <input type="text" placeholder="Username" name="username" required>
-                    <i class="icon fas fa-user"></i>
+                    <input type="text" placeholder="Category Name" name="category_name" required>
+                    <i class="icon fas fa-tag"></i>
                     <i class="error error-icon fas fa-exclamation-circle"></i>
                 </div>
-                <div class="error error-txt">Username can't be blank</div>
+                <div class="error error-txt">Category name can't be blank</div>
             </div>
-            <div class="field">
-                <div class="input-area">
-                    <input type="email" placeholder="Email" name="email" required>
-                    <i class="icon fas fa-envelope"></i>
-                    <i class="error error-icon fas fa-exclamation-circle"></i>
-                </div>
-                <div class="error error-txt">Email can't be blank</div>
-            </div>
-            <div class="field">
-                <div class="input-area">
-                    <input type="password" placeholder="Password" name="password" required>
-                    <i class="icon fas fa-lock"></i>
-                    <i class="error error-icon fas fa-exclamation-circle"></i>
-                </div>
-                <div class="error error-txt">Password can't be blank</div>
-            </div>
-            <input type="submit" value="Register">
+            <input type="submit" value="Add Category">
         </form>
-        <div class="sign-txt">Already a member? <a href="login.php">Login</a></div>
-    </div>
-
-    <div id="custom-alert" class="alert">
-        <div>
-            <?php echo $error; ?>
-            <i class="fa-solid fa-xmark" style="margin-left: 10px;" onclick="closeAlert()"></i>
-        </div>
+        <?php if ($error): ?>
+            <div class="alert error"><?php echo $error; ?></div>
+        <?php elseif ($success): ?>
+            <div class="alert"><?php echo $success; ?></div>
+        <?php endif; ?>
+        <div class="sign-txt"><a href="dashboard.php">Back to Dashboard</a></div>
     </div>
 
     <script>
         // Function to close the alert box
         const closeAlert = () => {
-            const alertBox = document.getElementById("custom-alert");
-            alertBox.style.display = "none";
+            const alertBox = document.getElementsByClassName("alert")[0];
+            if (alertBox) {
+                alertBox.style.display = "none";
+            }
+        }
+
+        // Automatically hide alert after 5 seconds
+        setTimeout(closeAlert, 5000);
+
+        // Show alert box if there's a message
+        const alertBox = document.getElementsByClassName("alert")[0];
+        if (alertBox) {
+            alertBox.style.display = "block";
         }
     </script>
 
