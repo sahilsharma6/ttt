@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   if (password_verify($password, $passwordHash)) {
     $_SESSION['user_id'] = $id;
     $_SESSION['role'] = $role;
+    $_SESSION['username'] = $username;
     if ($role == 'User') {
       header('Location: index.php');
     } elseif ($role == 'Admin') {

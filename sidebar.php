@@ -60,6 +60,7 @@
           <li><a class="link_name" href="#">Users</a></li>
           <li><a href="manage.php">manage_users</a></li>
           <li><a href="register.php">register_users</a></li>
+          <li><a href="Allcomments.php">Comments</a></li>
         </ul>
       </li>';
       }
@@ -70,16 +71,34 @@
       if ($_SESSION['role'] == 'SuperAdmin') {
         echo '
      <li>
-        <a href="">
+        <a href="Settings.php">
           <i class="bx bx-cog"></i>
           <span class="link_name">Website Settings</span>
         </a>
         <ul class="sub-menu blank">
-          <li><a class="link_name" href="#">Settings</a></li>
+          <li><a class="link_name" href="">Settings</a></li>
         </ul>
-      </li>';
+      </li>
+      ';
       }
       ?>
+
+      <li>
+        <a href="logout.php">
+          <!-- <i class="bx bx-user"></i> -->
+          <i class='bx bx-log-out'></i>
+          <span class="link_name">Logout</span>
+        </a>
+        <ul class="sub-menu blank">t
+          <li><a class="link_name" href="#">Logout</a></li>
+        </ul>
+        </a>
+      </li>
+
+      <li>
+        <div class="profile-details">
+
+      </li>
       <!-- ?> -->
 
 

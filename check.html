@@ -1,0 +1,70 @@
+<style>
+  code {
+    /* background: blue; */
+    background: #534b4b;
+    display: inline-block;
+    color: white;
+    padding: 12px;
+    width: 70%;
+    /* margin: 42px; */
+    margin-top: 10px;
+  }
+</style>
+
+<p>
+  CSS (Cascading Style Sheets) is a language used for describing the
+  presentation of a document written in HTML or XML. It controls how HTML
+  elements are displayed on a web page. This tutorial will teach you CSS from
+  basic to advanced.
+</p>
+<h3>What You Will Learn</h3>
+<ul>
+  <li>Basic syntax and structure of CSS</li>
+  <li>Applying CSS styles to HTML elements</li>
+  <li>Working with selectors and properties</li>
+  <li>Understanding CSS box model</li>
+  <li>Responsive design techniques</li>
+</ul>
+<h2>Prerequisites</h2>
+<p>
+  Before starting this tutorial, you should have a basic understanding of HTML
+  and how web pages work.
+</p>
+<h2>Getting Started</h2>
+<h3>Embedding CSS</h3>
+<p>CSS can be applied to HTML documents in three ways:</p>
+<ol>
+  <li>
+    <strong>Inline CSS:</strong> Applied directly within an HTML tag using the
+    <code>style</code> attribute.
+    <pre
+      class="language-css"
+    ><code>&lt;p style="color: blue; font-size: 16px;"&gt;Hello, CSS!&lt;/p&gt;
+</code></pre>
+  </li>
+  <li>
+    <strong>Internal CSS:</strong> Defined within the
+    <code>&lt;style&gt;</code> element in the <code>&lt;head&gt;</code> section
+    of an HTML page&lt;head&gt;<br />&nbsp; &nbsp;
+    <pre class="language-css"><code>&lt;head&gt;
+    &lt;style&gt;
+        p {
+            color: blue;
+            font-size: 16px;
+             background:red;
+
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+</code></pre>
+  </li>
+  <li>
+    <strong>External CSS:</strong> Defined in a separate CSS file and linked to
+    an HTML document using the <code>&lt;link&gt;</code> element.
+    <pre class="language-markup"><code>&lt;head&gt;
+    &lt;link rel="stylesheet" type="text/css" href="styles.css"&gt;
+&lt;/head&gt;
+
+</code></pre>
+  </li>
+</ol>

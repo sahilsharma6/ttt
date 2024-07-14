@@ -16,6 +16,7 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'Admin' && $_SESSION['
 // $user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
 
+
 // Fetch usernames from the database excluding the logged-in user
 
 

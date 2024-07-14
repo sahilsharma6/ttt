@@ -42,7 +42,23 @@ if (!$result) {
             <?php while ($row = mysqli_fetch_assoc($result)): ?>
                 <tr>
                     <td><?php echo $row['title']; ?></td>
-                    <td><?php echo substr($row['content'], 0, 100); ?>...</td>
+
+                    <td>
+                        <?php
+                        $content = $row['content']; // Assuming $row is your database row
+                        $content = strip_tags($content); // Remove any HTML tags for word count
+                    
+                        // Check if content length exceeds 20 words
+                        if (str_word_count($content) > 20) {
+                            // Limit the content to 20 words
+                            $content = implode(' ', array_slice(str_word_count($content, 2), 0, 20)) . '...';
+                        }
+
+                        // Output the content with HTML preserved
+                        echo nl2br($content);
+                        ?>
+                    </td>
+                    </td>
                     <td><?php echo $row['category_name']; ?></td>
                     <td>
                         <a href="EditPost.php?id=<?php echo $row['id']; ?>">Edit</a> |
