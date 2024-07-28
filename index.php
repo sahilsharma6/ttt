@@ -28,7 +28,15 @@ if ($category_id) {
 // Fetch the selected post
 $current_post = [];
 if ($post_id) {
-    $post_query = "SELECT id, title, content FROM posts WHERE id = ?";
+    // Increment the view count
+    $update_views_query = "UPDATE posts SET views = views + 1 WHERE id = ?";
+    $stmt = mysqli_prepare($connection, $update_views_query);
+    mysqli_stmt_bind_param($stmt, "i", $post_id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
+    // Fetch the post data
+    $post_query = "SELECT id, title, content, views FROM posts WHERE id = ?";
     $stmt = mysqli_prepare($connection, $post_query);
     mysqli_stmt_bind_param($stmt, "i", $post_id);
     mysqli_stmt_execute($stmt);
@@ -98,8 +106,13 @@ mysqli_close($connection);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>
+        <?php echo $current_post ? htmlspecialchars($current_post['title']) : 'My Website'; ?>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.1/css/boxicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         body {
             background-color: #f4f4f4;
@@ -123,6 +136,16 @@ mysqli_close($connection);
         .comment-form {
             margin-top: 30px;
         }
+
+        .cd {
+            background: #534b4b;
+            display: inline-block;
+            color: white;
+            padding: 12px;
+            width: 70%;
+            /* margin: 42px; */
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -138,8 +161,8 @@ mysqli_close($connection);
                 <ul class="navbar-nav ml-auto">
                     <?php foreach (array_reverse($categories) as $category): ?>
                         <li class="nav-item">
-                            <a class="nav-link"
-                                href="?category_id=<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['category_name']); ?></a>
+                            <a class="nav-link" href="?category_id=<?php echo $category['id']; ?>">
+                                <?php echo htmlspecialchars($category['category_name']); ?></a>
                         </li>
                     <?php endforeach; ?>
                 </ul>
@@ -154,7 +177,8 @@ mysqli_close($connection);
                     <?php foreach ($posts as $post): ?>
                         <li class="nav-item">
                             <a class="nav-link"
-                                href="?category_id=<?php echo $category_id; ?>&post_id=<?php echo $post['id']; ?>"><?php echo htmlspecialchars($post['title']); ?></a>
+                                href="?category_id=<?php echo $category_id; ?>&post_id=<?php echo $post['id']; ?>"> <i
+                                    class="fa-solid fa-check mx-2"></i><?php echo htmlspecialchars($post['title']); ?></a>
                         </li>
                     <?php endforeach; ?>
                 </ul>
@@ -163,8 +187,9 @@ mysqli_close($connection);
             <main role="main" class="col-md-9 content">
                 <?php if ($current_post): ?>
                     <h2><?php echo htmlspecialchars($current_post['title']); ?></h2>
-                    <p class="" style="o"><?php echo (($current_post['content'])); ?></p>
-                    <div class=" pagination">
+                    <p><?php echo ($current_post['content']); ?></p>
+                    <p><strong>Views: </strong><?php echo $current_post['views']; ?></p>
+                    <div class="pagination mt-5 d-flex justify-content-between">
                         <?php
                         $previous_post_id = null;
                         $next_post_id = null;
@@ -185,7 +210,7 @@ mysqli_close($connection);
                                 Post</a>&nbsp;&nbsp;
                         <?php endif; ?>
                         <?php if ($next_post_id): ?>
-                            <a class="btn btn-primary"
+                            <a class="btn btn-primary mx-3"
                                 href="?category_id=<?php echo $category_id; ?>&post_id=<?php echo $next_post_id; ?>">Next
                                 Post</a>
                         <?php endif; ?>
@@ -193,7 +218,7 @@ mysqli_close($connection);
 
                     <!-- Comments Section -->
                     <div class="comments">
-                        <h3>Comments</h3>
+                        <h3 class="my-5">Comments</h3>
                         <?php if (!empty($comments)): ?>
                             <?php foreach ($comments as $comment): ?>
                                 <div class="comment">
@@ -224,7 +249,7 @@ mysqli_close($connection);
                                     required><?php echo $edit_comment_id ? htmlspecialchars($comments[array_search($edit_comment_id, array_column($comments, 'id'))]['comment']) : ''; ?></textarea>
                             </div>
                             <button type="submit"
-                                class="btn btn-primary"><?php echo $edit_comment_id ? 'Update' : 'Submit'; ?></button>
+                                class="btn btn-primary my-3"><?php echo $edit_comment_id ? 'Update' : 'Submit'; ?></button>
                         </form>
                     <?php else: ?>
                         <p><a href="login.php">Login</a> to add a comment.</p>
