@@ -19,24 +19,43 @@ while ($row = mysqli_fetch_assoc($result)) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $title = $_POST['title'];
-    $content = $_POST['content'];
-    $category_id = $_POST['category_id'];
+    if (isset($_POST['add_post'])) {
+        $title = $_POST['title'];
+        $content = $_POST['content'];
+        $category_id = $_POST['category_id'];
+        $subcategory_id = $_POST['subcategory_id'];
 
-    if (!empty($title) && !empty($content) && !empty($category_id)) {
-        // Prepare an insert statement
-        $stmt = mysqli_prepare($connection, "INSERT INTO posts (title, content, category_id) VALUES (?, ?, ?)");
-        mysqli_stmt_bind_param($stmt, "ssi", $title, $content, $category_id);
+        if (!empty($title) && !empty($content) && !empty($category_id) && !empty($subcategory_id)) {
+            // Prepare an insert statement
+            $stmt = mysqli_prepare($connection, "INSERT INTO posts (title, content, category_id, subcategory_id) VALUES (?, ?, ?, ?)");
+            mysqli_stmt_bind_param($stmt, "ssii", $title, $content, $category_id, $subcategory_id);
 
-        if (mysqli_stmt_execute($stmt)) {
-            $success = "Post added successfully!";
+            if (mysqli_stmt_execute($stmt)) {
+                $success = "Post added successfully!";
+            } else {
+                $error = "Something went wrong. Please try again.";
+            }
+
+            mysqli_stmt_close($stmt);
         } else {
-            $error = "Something went wrong. Please try again.";
+            $error = "Please fill in all fields.";
+        }
+    } elseif (isset($_POST['fetch_subcategories'])) {
+        $category_id = $_POST['category_id'];
+        $subcategories = [];
+        $result = mysqli_query($connection, "SELECT id, subcategory_name FROM subcategories WHERE category_id = $category_id");
+        while ($row = mysqli_fetch_assoc($result)) {
+            $subcategories[] = $row;
         }
 
-        mysqli_stmt_close($stmt);
-    } else {
-        $error = "Please fill in all fields.";
+        if (!empty($subcategories)) {
+            foreach ($subcategories as $subcategory) {
+                echo '<option value="' . $subcategory['id'] . '">' . htmlspecialchars($subcategory['subcategory_name']) . '</option>';
+            }
+        } else {
+            echo '<option value="">No subcategories found</option>';
+        }
+        exit();
     }
 }
 
@@ -54,6 +73,7 @@ mysqli_close($connection);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.1/css/boxicons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
@@ -83,7 +103,14 @@ mysqli_close($connection);
                     <?php endforeach; ?>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">Add Post</button>
+            <div class="mb-3">
+                <label for="subcategory_id" class="form-label">Subcategory</label>
+                <select class="form-select" id="subcategory_id" name="subcategory_id" required>
+                    <option value="">Select a subcategory</option>
+                    <!-- Subcategories will be loaded here via AJAX -->
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" name="add_post">Add Post</button>
         </form>
     </div>
 
@@ -152,6 +179,24 @@ mysqli_close($connection);
             // content_css: "dark",
             content_style:
                 "body { font-family:Helvetica,Arial,sans-serif; font-size:16px }",
+        });
+
+        $(document).ready(function () {
+            $('#category_id').change(function () {
+                var category_id = $(this).val();
+                if (category_id) {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'AddPost.php',
+                        data: { category_id: category_id, fetch_subcategories: true },
+                        success: function (response) {
+                            $('#subcategory_id').html(response);
+                        }
+                    });
+                } else {
+                    $('#subcategory_id').html('<option value="">Select a subcategory</option>');
+                }
+            });
         });
     </script>
 </body>

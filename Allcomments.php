@@ -59,7 +59,7 @@ echo "
 // print_r($comments);
 echo "</pre>";
 
-mysqli_close($connection);
+// mysqli_close($connection);
 ?>
 
 <!DOCTYPE html>

@@ -83,6 +83,22 @@ if (isset($_POST['delete_subcategory'])) {
     $success = "Subcategory deleted successfully!";
 }
 
+if (isset($_POST['add_subcategory'])) {
+    $category_id = $_POST['category_id'];
+    $subcategory_name = trim($_POST['subcategory_name']);
+
+    if (empty($subcategory_name)) {
+        $error = "Subcategory name is required.";
+    } else {
+        $stmt = mysqli_prepare($connection, "INSERT INTO subcategories (subcategory_name, category_id) VALUES (?, ?)");
+        mysqli_stmt_bind_param($stmt, "si", $subcategory_name, $category_id);
+        mysqli_stmt_execute($stmt);
+
+        if (empty($error)) {
+            $success = "Subcategory added successfully!";
+        }
+    }
+}
 // Fetch categories and subcategories
 $categories = [];
 $query = "SELECT c.id as category_id, c.category_name, c.category_image, s.id as subcategory_id, s.subcategory_name
@@ -147,11 +163,14 @@ mysqli_close($connection);
             margin-bottom: 20px;
         }
 
-        table, th, td {
+        table,
+        th,
+        td {
             border: 1px solid #ddd;
         }
 
-        th, td {
+        th,
+        td {
             padding: 15px;
             text-align: left;
         }
@@ -222,46 +241,64 @@ mysqli_close($connection);
                 <th>Actions</th>
             </tr>
             <?php foreach ($categories as $category_id => $category): ?>
-            <tr>
-                <td><?php echo $category['name']; ?></td>
-                <td><img src="<?php echo $category['image']; ?>" alt="Category Image" width="50"></td>
-                <td>
-                    <ul>
-                        <?php if (!empty($category['subcategories'])): ?>
-                        <?php foreach ($category['subcategories'] as $subcategory): ?>
-                        <li>
-                            <?php echo $subcategory['name']; ?>
-                            <form action="manage_categories.php" method="POST" style="display: inline;">
-                                <input type="hidden" name="subcategory_id" value="<?php echo $subcategory['id']; ?>">
-                                <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
-                                <input type="text" name="subcategory_name" value="<?php echo $subcategory['name']; ?>" required>
-                                <input type="submit" name="update_subcategory" value="Update">
-                                <input type="submit" name="delete_subcategory" value="Delete">
-                            </form>
-                        </li>
-                        <?php endforeach; ?>
-                        <?php endif; ?>
-                    </ul>
-                    <form action="manage_categories.php" method="POST">
-                        <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
-                        <input type="text" name="subcategory_name" placeholder="New Subcategory Name" required>
-                        <input type="submit" name="add_subcategory" value="Add Subcategory">
-                    </form>
-                </td>
-                <td>
-                    <form action="manage_categories.php" method="POST" enctype="multipart/form-data">
-                        <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
-                        <input type="text" name="category_name" value="<?php echo $category['name']; ?>" required>
-                        <input type="file" name="category_image">
-                        <input type="submit" name="update_category" value="Update">
-                        <input type="submit" name="delete_category" value="Delete">
-                    </form>
-                </td>
-            </tr>
+                <tr>
+                    <td><?php echo $category['name']; ?></td>
+                    <td><img src="<?php echo $category['image']; ?>" alt="Category Image" width="50"></td>
+                    <td>
+                        <ul>
+                            <?php if (!empty($category['subcategories'])): ?>
+                                <?php foreach ($category['subcategories'] as $subcategory): ?>
+                                    <li>
+                                        <?php echo $subcategory['name']; ?>
+                                        <form action="manage_categories.php" method="POST" style="display: inline;">
+                                            <input type="hidden" name="subcategory_id" value="<?php echo $subcategory['id']; ?>">
+                                            <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
+                                            <input type="text" name="subcategory_name" value="<?php echo $subcategory['name']; ?>"
+                                                required>
+                                            <input type="submit" name="update_subcategory" value="Update">
+                                            <input type="submit" name="delete_subcategory" value="Delete">
+                                        </form>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </ul>
+                        <form action="manage_categories.php" method="POST">
+                            <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
+                            <input type="text" name="subcategory_name" placeholder="New Subcategory Name" required>
+                            <input type="submit" name="add_subcategory" value="Add Subcategory">
+                        </form>
+                    </td>
+                    <td>
+                        <form action="manage_categories.php" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
+                            <input type="text" name="category_name" value="<?php echo $category['name']; ?>" required>
+                            <input type="file" name="category_image">
+                            <input type="submit" name="update_category" value="Update">
+                            <input type="submit" name="delete_category" value="Delete">
+                        </form>
+                    </td>
+                </tr>
             <?php endforeach; ?>
         </table>
         <div class="sign-txt"><a href="dashboard.php">Back to Dashboard</a></div>
     </div>
+
+    <script>
+        const form = document.querySelectorAll("form");
+
+        // on submit form refresh page after completing it's work
+        form.forEach(form => {
+            form.addEventListener("submit", event => {
+                form.submit();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000)
+                // event.preventDefault();
+            });
+        });
+
+
+    </script>
 </body>
 
 </html>

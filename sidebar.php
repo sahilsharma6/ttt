@@ -1,3 +1,22 @@
+<?php
+$user_id = $_SESSION['user_id'];
+// echo 'dscnxjemfdkfvjncxkndfkcn ' . $role . ' ' . $user_id;
+
+$role = $_SESSION['role'];
+
+// Fetch the username of the logged-in user
+// $stmt = mysqli_prepare($connection, "SELECT username FROM testt WHERE id = ?");
+// mysqli_stmt_bind_param($stmt, "i", $user_id);
+// mysqli_stmt_execute($stmt);
+// mysqli_stmt_bind_result($stmt, $username);
+
+// mysqli_stmt_fetch($stmt); // Fetch the result into variables
+// mysqli_stmt_close($stmt);
+// mysqli_close($connection);
+$username = $_SESSION['username'];
+
+?>
+
 <div>
 
   <div class="sidebar close">
@@ -25,7 +44,7 @@
         </div>
         <ul class="sub-menu">
           <li><a class="link_name" href="">Category</a></li>
-          <li><a href="AllCategories.php">Categories</a></li>
+          <li><a href="manage_categories.php">Categories</a></li>
           <li><a href="./AddCategories.php">Add Categories</a></li>
         </ul>
       </li>
@@ -39,7 +58,7 @@
         </div>
         <ul class="sub-menu">
           <li><a class="link_name" href="#">Posts</a></li>
-          <li><a href="AllPost.php">Posts</a></li>
+          <li><a href="copyallp.php">Posts</a></li>
           <li><a href="AddPost.php">Add Posts</a></li>
         </ul>
       </li>

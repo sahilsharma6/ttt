@@ -8,65 +8,69 @@ if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'Admin' && $_SESSION['ro
     exit();
 }
 
-$error = ''; // Initialize an error variable
-$success = ''; // Initialize a success variable
+$error = '';
+$success = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Validate and sanitize inputs
-    $category_name = trim($_POST['category_name']);
-    $subcategory_names = array_map('trim', $_POST['subcategory_name']);
-    $category_image = $_FILES['category_image'];
+// Get the category ID from URL
+$category_id = isset($_GET['category_id']) ? intval($_GET['category_id']) : 0;
 
-    // Check for errors
-    if (empty($category_name)) {
-        $error = "Category name is required.";
-    } elseif ($category_image['error'] == UPLOAD_ERR_NO_FILE) {
-        $error = "Category image is required.";
-    } elseif (!in_array($category_image['type'], ['image/jpeg', 'image/png', 'image/gif'])) {
-        $error = "Invalid image format. Only JPG, PNG, and GIF are allowed.";
-    } elseif ($category_image['size'] > 2 * 1024 * 1024) { // 2MB limit
-        $error = "Image size should not exceed 2MB.";
-    } elseif (empty(array_filter($subcategory_names))) {
-        $error = "At least one subcategory is required.";
+// Handle subcategory addition
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_subcategory'])) {
+    $subcategory_name = trim($_POST['subcategory_name']);
+
+    if (empty($subcategory_name)) {
+        $error = "Subcategory name is required.";
     } else {
-        // Check if the category already exists
-        $stmt = mysqli_prepare($connection, "SELECT id FROM categories WHERE category_name = ?");
-        mysqli_stmt_bind_param($stmt, "s", $category_name);
+        // Check if the subcategory already exists
+        $stmt = mysqli_prepare($connection, "SELECT id FROM subcategories WHERE category_id = ? AND subcategory_name = ?");
+        mysqli_stmt_bind_param($stmt, "is", $category_id, $subcategory_name);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_store_result($stmt);
 
         if (mysqli_stmt_num_rows($stmt) > 0) {
-            $error = "Category already exists.";
+            $error = "Subcategory already exists.";
         } else {
-            // Handle image upload
-            $image_path = 'uploads/' . basename($category_image['name']);
-            if (move_uploaded_file($category_image['tmp_name'], $image_path)) {
-                // Insert the category into the database
-                $stmt = mysqli_prepare($connection, "INSERT INTO categories (category_name, category_image) VALUES (?, ?)");
-                mysqli_stmt_bind_param($stmt, "ss", $category_name, $image_path);
+            // Insert the subcategory into the database
+            $stmt = mysqli_prepare($connection, "INSERT INTO subcategories (category_id, subcategory_name) VALUES (?, ?)");
+            mysqli_stmt_bind_param($stmt, "is", $category_id, $subcategory_name);
 
-                if (mysqli_stmt_execute($stmt)) {
-                    $category_id = mysqli_insert_id($connection);
-
-                    // Insert subcategories into the database
-                    foreach ($subcategory_names as $subcategory_name) {
-                        if (!empty($subcategory_name)) {
-                            $stmt = mysqli_prepare($connection, "INSERT INTO subcategories (category_id, subcategory_name) VALUES (?, ?)");
-                            mysqli_stmt_bind_param($stmt, "is", $category_id, $subcategory_name);
-                            mysqli_stmt_execute($stmt);
-                        }
-                    }
-                    $success = "Category and subcategories added successfully!";
-                } else {
-                    $error = "Something went wrong. Please try again.";
-                }
+            if (mysqli_stmt_execute($stmt)) {
+                $success = "Subcategory added successfully!";
             } else {
-                $error = "Failed to upload image.";
+                $error = "Something went wrong. Please try again.";
             }
         }
         mysqli_stmt_close($stmt);
     }
 }
+
+// Handle subcategory deletion
+if (isset($_GET['delete_subcategory_id'])) {
+    $delete_id = intval($_GET['delete_subcategory_id']);
+
+    // Delete the subcategory
+    $stmt = mysqli_prepare($connection, "DELETE FROM subcategories WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $delete_id);
+    if (mysqli_stmt_execute($stmt)) {
+        $success = "Subcategory deleted successfully!";
+    } else {
+        $error = "Failed to delete subcategory.";
+    }
+    mysqli_stmt_close($stmt);
+}
+
+// Fetch subcategories for the category
+$subcategories = [];
+$stmt = mysqli_prepare($connection, "SELECT id, subcategory_name FROM subcategories WHERE category_id = ?");
+mysqli_stmt_bind_param($stmt, "i", $category_id);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+
+while ($row = mysqli_fetch_assoc($result)) {
+    $subcategories[] = $row;
+}
+
+mysqli_stmt_close($stmt);
 mysqli_close($connection);
 ?>
 
@@ -74,7 +78,7 @@ mysqli_close($connection);
 <html>
 
 <head>
-    <title>Add Category and Subcategory</title>
+    <title>Manage Subcategories</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
@@ -96,7 +100,7 @@ mysqli_close($connection);
         }
 
         .wrapper {
-            width: 380px;
+            width: 500px;
             padding: 40px 30px 50px 30px;
             background: #fff;
             border-radius: 5px;
@@ -261,63 +265,84 @@ mysqli_close($connection);
         .alert.error {
             background-color: #dc3545;
         }
+
+        .subcategory-list {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .subcategory-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .subcategory-list table,
+        .subcategory-list th,
+        .subcategory-list td {
+            border: 1px solid #ddd;
+        }
+
+        .subcategory-list th,
+        .subcategory-list td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        .subcategory-list tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 
 <body>
     <div class="wrapper">
-        <header>Add Category and Subcategory</header>
-        <form action="AddCategories.php" method="POST" enctype="multipart/form-data">
-            <div class="field">
-                <div class="input-area">
-                    <input type="text" placeholder="Category Name" name="category_name" required>
-                    <i class="icon fas fa-tag"></i>
-                    <i class="error error-icon fas fa-exclamation-circle"></i>
-                </div>
-                <div class="error error-txt">Category name can't be blank</div>
-            </div>
-            <div id="subcategory-fields">
-                <div class="field">
-                    <div class="input-area">
-                        <input type="text" placeholder="Subcategory Name" name="subcategory_name[]" required>
-                        <i class="icon fas fa-tags"></i>
-                    </div>
-                </div>
-            </div>
-            <button type="button" onclick="addSubcategoryField()">Add Another Subcategory</button>
-            <div class="field">
-                <div class="input-area">
-                    <input type="file" name="category_image" required>
-                    <i class="icon fas fa-image"></i>
-                    <i class="error error-icon fas fa-exclamation-circle"></i>
-                </div>
-                <div class="error error-txt">Category image is required.</div>
-            </div>
-            <input type="submit" value="Add Category">
-        </form>
+        <header>Manage Subcategories</header>
         <?php if ($error): ?>
             <div class="alert error"><?php echo $error; ?></div>
         <?php elseif ($success): ?>
             <div class="alert"><?php echo $success; ?></div>
         <?php endif; ?>
+
+        <form action="ManageSubcategories.php?category_id=<?php echo $category_id; ?>" method="POST">
+            <div class="field">
+                <div class="input-area">
+                    <input type="text" placeholder="Subcategory Name" name="subcategory_name" required>
+                    <i class="icon fas fa-tags"></i>
+                </div>
+                <div class="error error-txt">Subcategory name can't be blank</div>
+            </div>
+            <input type="submit" name="add_subcategory" value="Add Subcategory">
+        </form>
+
+        <div class="subcategory-list">
+            <h2>Subcategories</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subcategory Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($subcategories as $subcategory): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($subcategory['subcategory_name']); ?></td>
+                            <td>
+                                <a href="ManageSubcategories.php?category_id=<?php echo $category_id; ?>&delete_subcategory_id=<?php echo $subcategory['id']; ?>"
+                                    onclick="return confirm('Are you sure you want to delete this subcategory?');">
+                                    <i class="fas fa-trash" style="color: red;"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
         <div class="sign-txt"><a href="dashboard.php">Back to Dashboard</a></div>
     </div>
 
     <script>
-        // Function to add another subcategory field
-        function addSubcategoryField() {
-            const subcategoryFields = document.getElementById('subcategory-fields');
-            const newField = document.createElement('div');
-            newField.classList.add('field');
-            newField.innerHTML = `
-                <div class="input-area">
-                    <input type="text" placeholder="Subcategory Name" name="subcategory_name[]" required>
-                    <i class="icon fas fa-tags"></i>
-                </div>
-            `;
-            subcategoryFields.appendChild(newField);
-        }
-
         // Function to close the alert box
         const closeAlert = () => {
             const alertBox = document.getElementsByClassName("alert")[0];

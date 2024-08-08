@@ -7,10 +7,17 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] !== 'Admin' && $_SESSION[
     exit();
 }
 
+// Pagination settings
+$posts_per_page = isset($_GET['posts_per_page']) ? (int) $_GET['posts_per_page'] : 10;
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $posts_per_page;
+
+// Sort and Filter
 $sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'latest';
 $category_filter = isset($_GET['category_filter']) ? $_GET['category_filter'] : '';
 $search_query = isset($_GET['search_query']) ? $_GET['search_query'] : '';
 
+// Build SQL query
 $sql = "SELECT posts.id, posts.title, posts.content, posts.created_at, categories.category_name 
         FROM posts 
         JOIN categories ON posts.category_id = categories.id ";
@@ -33,11 +40,27 @@ if ($sort_order == 'latest') {
     $sql .= "ORDER BY posts.created_at ASC";
 }
 
+// Add pagination to the SQL query
+$sql .= " LIMIT $offset, $posts_per_page";
+
 $result = mysqli_query($connection, $sql);
 
 if (!$result) {
     die("Query Failed: " . mysqli_error($connection));
 }
+
+// Fetch total number of posts for pagination
+$total_query = "SELECT COUNT(*) AS total 
+                FROM posts 
+                JOIN categories ON posts.category_id = categories.id ";
+if (count($conditions) > 0) {
+    $total_query .= 'WHERE ' . implode(' AND ', $conditions);
+}
+
+$total_result = mysqli_query($connection, $total_query);
+$total_row = mysqli_fetch_assoc($total_result);
+$total_posts = $total_row['total'];
+$total_pages = ceil($total_posts / $posts_per_page);
 
 // Fetch all categories for the filter dropdown
 $categories_result = mysqli_query($connection, "SELECT id, category_name FROM categories");
@@ -45,7 +68,6 @@ $categories = [];
 while ($row = mysqli_fetch_assoc($categories_result)) {
     $categories[] = $row;
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -58,6 +80,34 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.1/css/boxicons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        <style>.pagination {
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .pagination a {
+            margin: 0 5px;
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .pagination a.active {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination a:hover {
+            background-color: #e9ecef;
+            color: #0056b3;
+        }
+    </style>
+    </style>
 </head>
 
 <body>
@@ -88,6 +138,16 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                 <div class="col-md-3">
                     <input type="text" name="search_query" class="form-control" placeholder="Search by title"
                         value="<?php echo htmlspecialchars($search_query); ?>">
+                </div>
+                <div class="col-md-3">
+                    <select name="posts_per_page" class="form-select">
+                        <option value="10" <?php if ($posts_per_page == 10)
+                            echo 'selected'; ?>>10 per page</option>
+                        <option value="25" <?php if ($posts_per_page == 25)
+                            echo 'selected'; ?>>25 per page</option>
+                        <option value="50" <?php if ($posts_per_page == 50)
+                            echo 'selected'; ?>>50 per page</option>
+                    </select>
                 </div>
                 <div class="col-md-3">
                     <button type="submit" class="btn btn-primary">Filter</button>
@@ -128,6 +188,29 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                 </tr>
             <?php endwhile; ?>
         </table>
+
+        <!-- Pagination Links -->
+        <div class="pagination d-flex justify-content-center">
+            <?php if ($page > 1): ?>
+                <a
+                    href="?page=<?php echo $page - 1; ?>&sort_order=<?php echo urlencode($sort_order); ?>&category_filter=<?php echo urlencode($category_filter); ?>&search_query=<?php echo urlencode($search_query); ?>&posts_per_page=<?php echo $posts_per_page; ?>">&laquo;
+                    Previous</a>
+            <?php endif; ?>
+
+            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <a href="?page=<?php echo $i; ?>&sort_order=<?php echo urlencode($sort_order); ?>&category_filter=<?php echo urlencode($category_filter); ?>&search_query=<?php echo urlencode($search_query); ?>&posts_per_page=<?php echo $posts_per_page; ?>"
+                    class="<?php if ($i == $page)
+                        echo 'active'; ?>">
+                    <?php echo $i; ?>
+                </a>
+            <?php endfor; ?>
+
+            <?php if ($page < $total_pages): ?>
+                <a
+                    href="?page=<?php echo $page + 1; ?>&sort_order=<?php echo urlencode($sort_order); ?>&category_filter=<?php echo urlencode($category_filter); ?>&search_query=<?php echo urlencode($search_query); ?>&posts_per_page=<?php echo $posts_per_page; ?>">Next
+                    &raquo;</a>
+            <?php endif; ?>
+        </div>
     </div>
 </body>
 

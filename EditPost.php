@@ -2,82 +2,139 @@
 session_start();
 require 'db.php';
 
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] !== 'Admin' && $_SESSION['role'] !== 'SuperAdmin')) {
-    header('Location: login.php');
+// Check if the user is logged in and has the right role
+if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'Admin' && $_SESSION['role'] !== 'SuperAdmin')) {
+    header("Location: login.php");
     exit();
 }
 
-$post_id = $_GET['id'];
-$post = mysqli_fetch_assoc(mysqli_query($connection, "SELECT * FROM posts WHERE id = $post_id"));
+$error = '';
+$success = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// Initialize variables
+$categories = [];
+$subcategories = [];
+$post = [];
+
+// Fetch categories from the database
+$result = mysqli_query($connection, "SELECT id, category_name FROM categories");
+while ($row = mysqli_fetch_assoc($result)) {
+    $categories[] = $row;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
+    $post_id = $_GET['id'];
+    $stmt = mysqli_prepare($connection, "SELECT * FROM posts WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $post_id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $post = mysqli_fetch_assoc($result);
+    mysqli_stmt_close($stmt);
+
+    // Fetch subcategories for the selected category
+    if (isset($post['category_id'])) {
+        $stmt = mysqli_prepare($connection, "SELECT id, subcategory_name FROM subcategories WHERE category_id = ?");
+        mysqli_stmt_bind_param($stmt, "i", $post['category_id']);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        while ($row = mysqli_fetch_assoc($result)) {
+            $subcategories[] = $row;
+        }
+        mysqli_stmt_close($stmt);
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_post'])) {
+    $post_id = $_POST['post_id'];
     $title = $_POST['title'];
     $content = $_POST['content'];
     $category_id = $_POST['category_id'];
+    $subcategory_id = $_POST['subcategory_id'];
 
-    $stmt = mysqli_prepare($connection, "UPDATE posts SET title = ?, content = ?, category_id = ? WHERE id = ?");
-    mysqli_stmt_bind_param($stmt, "ssii", $title, $content, $category_id, $post_id);
+    if (!empty($title) && !empty($content) && !empty($category_id) && !empty($subcategory_id)) {
+        // Prepare an update statement
+        $stmt = mysqli_prepare($connection, "UPDATE posts SET title = ?, content = ?, category_id = ?, subcategory_id = ? WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "ssiii", $title, $content, $category_id, $subcategory_id, $post_id);
 
-    if (mysqli_stmt_execute($stmt)) {
-        header('Location: posts.php');
-        exit();
+        if (mysqli_stmt_execute($stmt)) {
+            $success = "Post updated successfully!";
+        } else {
+            $error = "Something went wrong. Please try again.";
+        }
+
+        mysqli_stmt_close($stmt);
     } else {
-        echo "Update failed.";
+        $error = "Please fill in all fields.";
     }
 }
 
-$categories_result = mysqli_query($connection, "SELECT * FROM categories");
+// Close the database connection
+mysqli_close($connection);
 ?>
 
 <!DOCTYPE html>
 <html>
 
 <head>
-    <title>Edit Post</title>
+    <title>Update Post</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.1/css/boxicons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tiny.cloud/1/lfqevskjzwe9ooap19ndn8lbigt79ghkothcuuyb704olerc/tinymce/5/tinymce.min.js"
-        referrerpolicy="origin"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
     <?php include_once 'sidebar.php'; ?>
-    <div class="dash-content">
-        <h1>Edit Post</h1>
+    <div class="dash-content z">
+        <h2>Update Post</h2>
         <?php if ($error): ?>
-            <div class="alert alert-danger"><?php echo $error; ?></div>
+            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
         <?php elseif ($success): ?>
-            <div class="alert alert-success"><?php echo $success; ?></div>
+            <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
-        <form action="EditPost.php?id=<?php echo $post_id; ?>" method="POST">
-            <div class="form-group">
-                <label for="title">Title:</label>
-                <input type="text" name="title" id="title" class="form-control"
-                    value="<?php echo htmlspecialchars($post['title']); ?>" required>
+        <form action="EditPost.php" method="POST">
+            <input type="hidden" name="post_id" value="<?php echo htmlspecialchars($post['id'] ?? ''); ?>">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" name="title"
+                    value="<?php echo htmlspecialchars($post['title'] ?? ''); ?>" required>
             </div>
-            <div class="form-group">
-                <label for="content">Content:</label>
-                <textarea class="form-control" id="content" name="content" rows="10"
-                    required><?php echo ($post['content']); ?></textarea>
+            <div class="mb-3">
+                <label for="content" class="form-label">Content</label>
+                <textarea id="content" name="content"><?php echo htmlspecialchars($post['content'] ?? ''); ?></textarea>
             </div>
-            <div class="form-group">
-                <label for="category_id">Category:</label>
-                <select name="category_id" id="category_id" class="form-control" required>
-                    <?php while ($category = mysqli_fetch_assoc($categories_result)): ?>
-                        <option value="<?php echo $category['id']; ?>" <?php if ($category['id'] == $post['category_id'])
+            <div class="mb-3">
+                <label for="category_id" class="form-label">Category</label>
+                <select class="form-select" id="category_id" name="category_id" required>
+                    <option value="">Select a category</option>
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?php echo $category['id']; ?>" <?php if (isset($post['category_id']) && $category['id'] == $post['category_id'])
                                echo 'selected'; ?>>
                             <?php echo htmlspecialchars($category['category_name']); ?>
                         </option>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">Update Post</button>
+            <div class="mb-3">
+                <label for="subcategory_id" class="form-label">Subcategory</label>
+                <select class="form-select" id="subcategory_id" name="subcategory_id" required>
+                    <option value="">Select a subcategory</option>
+                    <?php foreach ($subcategories as $subcategory): ?>
+                        <option value="<?php echo $subcategory['id']; ?>" <?php if (isset($post['subcategory_id']) && $subcategory['id'] == $post['subcategory_id'])
+                               echo 'selected'; ?>>
+                            <?php echo htmlspecialchars($subcategory['subcategory_name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" name="update_post">Update Post</button>
         </form>
     </div>
 
+    <!-- Include TinyMCE script -->
+    <script src="https://cdn.tiny.cloud/1/lfqevskjzwe9ooap19ndn8lbigt79ghkothcuuyb704olerc/tinymce/7/tinymce.min.js"
+        referrerpolicy="origin"></script>
     <script>
         tinymce.init({
             selector: "#content",
@@ -107,39 +164,42 @@ $categories_result = mysqli_query($connection, "SELECT * FROM categories");
             ],
             importcss_append: true,
             file_picker_callback: (callback, value, meta) => {
-                /* Provide file and text for the link dialog */
                 if (meta.filetype === "file") {
-                    callback("https://www.google.com/logos/google.jpg", {
-                        text: "My text",
-                    });
+                    callback("https://www.google.com/logos/google.jpg", { text: "My text" });
                 }
-
-                /* Provide image and alt text for the image dialog */
                 if (meta.filetype === "image") {
-                    callback("https://www.google.com/logos/google.jpg", {
-                        alt: "My alt text",
-                    });
+                    callback("https://www.google.com/logos/google.jpg", { alt: "My alt text" });
                 }
-
-                /* Provide alternative source and posted for the media dialog */
                 if (meta.filetype === "media") {
-                    callback("movie.mp4", {
-                        source2: "alt.ogg",
-                        poster: "https://www.google.com/logos/google.jpg",
-                    });
+                    callback("movie.mp4", { source2: "alt.ogg", poster: "https://www.google.com/logos/google.jpg" });
                 }
             },
             height: 600,
             image_caption: true,
-            quickbars_selection_toolbar:
-                "bold italic | quicklink h2 h3 blockquote quickimage quicktable",
+            quickbars_selection_toolbar: "bold italic | quicklink h2 h3 blockquote quickimage quicktable",
             noneditable_class: "mceNonEditable",
             toolbar_mode: "sliding",
             contextmenu: "link image table",
             skin: "oxide-dark",
-            // content_css: "dark",
-            content_style:
-                "body { font-family:Helvetica,Arial,sans-serif; font-size:16px }",
+            content_style: "body { font-family:Helvetica,Arial,sans-serif; font-size:16px }",
+        });
+
+        $(document).ready(function () {
+            $('#category_id').change(function () {
+                var category_id = $(this).val();
+                if (category_id) {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'EditPost.php',
+                        data: { category_id: category_id, fetch_subcategories: true },
+                        success: function (response) {
+                            $('#subcategory_id').html(response);
+                        }
+                    });
+                } else {
+                    $('#subcategory_id').html('<option value="">Select a subcategory</option>');
+                }
+            });
         });
     </script>
 </body>

@@ -269,6 +269,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <!-- <div class="pass-txt"><a href="#">Forgot password?</a></div> -->
       <input type="submit" value="Login">
     </form>
+    <div class="pass-txt"><a href="forgot-password.php">Forgot password?</a></div>
+
     <div class="sign-txt">Not yet member? <a href="./register.php">register</a></div>
     <div>
 

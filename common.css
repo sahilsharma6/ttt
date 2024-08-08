@@ -1,0 +1,115 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+a {
+  text-decoration: none;
+}
+
+/* Header */
+
+.login {
+  right: 20px;
+}
+
+.search {
+  transform: translateX(10px);
+  width: 800px;
+}
+
+@media screen and (max-width: 962px) {
+  .search {
+    width: 400px;
+  }
+}
+.navbarr {
+  background-color: #2f676f; /* Match the color from the image */
+  padding: 10px 0; /* Adjust padding as needed */
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  /* margin: 0; */
+  padding: 0;
+}
+
+.nav-item {
+  margin: 0 10px; /* Adjust spacing between items */
+}
+
+.nav-link-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.nav-link {
+  color: white; /* Text color */
+  text-decoration: none;
+  /* margin-left: 5px; Space between icon and text */
+  font-family: Arial, sans-serif; /* Use a clean font */
+  font-size: 14px; /* Adjust font size */
+}
+
+.nav-link:hover {
+  text-decoration: underline; /* Hover effect */
+}
+
+.mynav {
+  overflow: hidden;
+}
+
+.mynav ul {
+  background: #2f676f;
+  /* border: solid; */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  height: 60px;
+  /* margin-left: -40px; */
+  overflow-x: auto;
+  white-space: nowrap; /* Prevent line breaks */
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  cursor: pointer;
+}
+
+.mynav ul::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for WebKit browsers (Chrome, Safari) */
+}
+
+.mynav ul a li {
+  /* border: saddlebrown; */
+  text-align: center;
+  flex: 0 0 auto; /* Prevent shrinking and growing */
+  width: 100px; /* Adjust width as needed */
+  height: 100%;
+}
+.mynav ul a li:hover {
+  /* border: solid; */
+
+  background: #0000007d;
+}
+
+.mynav ul a li div {
+  transform: translateY(80%);
+
+  /* padding: 5px; Adjust padding as needed */
+}
+
+.mynav ul li div img {
+  margin-right: 5px;
+}
+
+.mynav ul a {
+  color: white; /* Text color */
+  text-decoration: none;
+  font-family: Arial, sans-serif; /* Use a clean font */
+  font-size: 14px; /* Adjust font size */
+}
+
+.mynav ul a:hover {
+  /* text-decoration: underline; Hover effect */
+}

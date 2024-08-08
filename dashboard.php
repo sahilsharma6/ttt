@@ -11,28 +11,26 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'Admin' && $_SESSION['
     exit();
 }
 
-// require_once 'config.php'; // Include your database connection file
 
 // $user_id = $_SESSION['user_id'];
-$role = $_SESSION['role'];
 
 
 // Fetch usernames from the database excluding the logged-in user
 
 
-$user_id = $_SESSION['user_id'];
+// $user_id = $_SESSION['user_id'];
 // echo 'dscnxjemfdkfvjncxkndfkcn ' . $role . ' ' . $user_id;
 
 
-// Fetch the username of the logged-in user
-$stmt = mysqli_prepare($connection, "SELECT username FROM testt WHERE id = ?");
-mysqli_stmt_bind_param($stmt, "i", $user_id);
-mysqli_stmt_execute($stmt);
-mysqli_stmt_bind_result($stmt, $username);
+// // Fetch the username of the logged-in user
+// $stmt = mysqli_prepare($connection, "SELECT username FROM testt WHERE id = ?");
+// mysqli_stmt_bind_param($stmt, "i", $user_id);
+// mysqli_stmt_execute($stmt);
+// mysqli_stmt_bind_result($stmt, $username);
 
-mysqli_stmt_fetch($stmt); // Fetch the result into variables
-mysqli_stmt_close($stmt);
-mysqli_close($connection);
+// mysqli_stmt_fetch($stmt); // Fetch the result into variables
+// mysqli_stmt_close($stmt);
+// mysqli_close($connection);
 
 ?>
 <!DOCTYPE html>
