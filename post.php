@@ -75,10 +75,10 @@ if ($post_id) {
 
     // Fetch comments
     $comments_query = "SELECT comments.id, comments.comment, comments.created_at, testt.username, comments.user_id 
-                        FROM comments 
-                        JOIN testt ON comments.user_id = testt.id 
-                        WHERE post_id = ? 
-                        ORDER BY comments.created_at DESC";
+                            FROM comments 
+                            JOIN testt ON comments.user_id = testt.id 
+                            WHERE post_id = ? 
+                            ORDER BY comments.created_at DESC";
     $stmt = mysqli_prepare($connection, $comments_query);
     mysqli_stmt_bind_param($stmt, "i", $post_id);
     mysqli_stmt_execute($stmt);
@@ -125,7 +125,7 @@ if ($current_post_index === count($posts) - 1 && !empty($subcategories)) {
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $next_post = mysqli_fetch_assoc($result);
-        $next_subcategory_first_post_id = $next_post['id'];
+        $next_subcategory_first_post_id = $next_post['id'] ?? null;
         mysqli_stmt_close($stmt);
     }
 }
@@ -308,7 +308,19 @@ mysqli_close($connection);
             /* Color for active item links */
             font-weight: bold;
         }
+
+        .language-javascript {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+        }
     </style>
+
+
 </head>
 
 <body>
@@ -378,8 +390,36 @@ mysqli_close($connection);
                         <?php endif; ?>
                     </div>
 
+                    <div class="share-buttons">
+                        <h4>Share this post:</h4>
+                        <!-- Facebook -->
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                            target="_blank" class="btn btn-primary">
+                            <i class="fab fa-facebook-f"></i> Share on Facebook
+                        </a>
+
+                        <!-- Twitter -->
+                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
+                            target="_blank" class="btn btn-info">
+                            <i class="fab fa-twitter"></i> Share on Twitter
+                        </a>
+
+                        <!-- LinkedIn -->
+                        <a href="https://www.linkedin.com/shareArticle?mini=true&url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&title=<?php echo urlencode($current_post['title']); ?>"
+                            target="_blank" class="btn btn-primary">
+                            <i class="fab fa-linkedin-in"></i> Share on LinkedIn
+                        </a>
+
+                        <!-- WhatsApp -->
+                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                            target="_blank" class="btn btn-success">
+                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                        </a>
+                    </div>
+
+
                     <div class="comments">
-                        <h3>Comments</h3>
+                        <h3>Comments (<?php echo count($comments); ?>) </h3>
                         <?php if (isset($_SESSION['username'])): ?>
                             <form method="POST">
                                 <div class="form-group">
@@ -395,9 +435,17 @@ mysqli_close($connection);
                             <p>Please <a href="login.php">login</a> to post comments.</p>
                         <?php endif; ?>
                         <ul class="list-group mt-3">
+                            <!-- if comments more than 5 add load more  -->
+
+
+
+
                             <?php foreach ($comments as $comment): ?>
-                                <li class="list-group-item">
+
+                                <li class=" list-group-item">
                                     <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
+
+
                                     <p><?php echo nl2br(htmlspecialchars($comment['comment'])); ?></p>
                                     <small><?php echo htmlspecialchars($comment['created_at']); ?></small>
                                     <?php if ($comment['user_id'] == isset($_SESSION['user_id'])): ?>
@@ -408,7 +456,9 @@ mysqli_close($connection);
                                             onclick="return confirm('Are you sure you want to delete this comment?');">Delete</a>
                                     <?php endif; ?>
                                 </li>
+
                             <?php endforeach; ?>
+
                         </ul>
                     </div>
                 <?php endif; ?>
@@ -418,6 +468,24 @@ mysqli_close($connection);
 
 
     <?php require_once 'footer.php'; ?>
+
+    <script>
+        function copyToClipboard() {
+            const codeElement = document.querySelector('.language-javascript');
+            const copyBtn = document.createElement('button');
+            copyBtn.textContent = 'Copy';
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(codeElement.textContent);
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                }, 2000);
+            });
+            codeElement.appendChild(copyBtn);
+
+        }
+        copyToClipboard()
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>

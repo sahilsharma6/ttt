@@ -6,7 +6,7 @@ session_start();
 // error_reporting(E_ALL);
 
 require_once 'db.php'; // Include your database connection file
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'SuperAdmin')) {
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] != 'Admin' && $_SESSION['role'] != 'SuperAdmin' && $_SESSION['role'] != 'Operator')) {
     header('Location: login.php');
     exit();
 }

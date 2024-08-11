@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db.php';
+require 'db.php';
 
 // Check if the user is logged in and has the right role
 if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'Admin' && $_SESSION['role'] !== 'SuperAdmin')) {
@@ -11,6 +11,12 @@ if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'Admin' && $_SESSION['ro
 $error = '';
 $success = '';
 
+// Directory for uploaded images
+$upload_dir = 'uploads/';
+if (!is_dir($upload_dir)) {
+    mkdir($upload_dir, 0777, true);
+}
+
 // Handle category update
 if (isset($_POST['update_category'])) {
     $category_id = $_POST['category_id'];
@@ -20,18 +26,21 @@ if (isset($_POST['update_category'])) {
     if (empty($category_name)) {
         $error = "Category name is required.";
     } else {
+        // Update category name
         $stmt = mysqli_prepare($connection, "UPDATE categories SET category_name = ? WHERE id = ?");
         mysqli_stmt_bind_param($stmt, "si", $category_name, $category_id);
         mysqli_stmt_execute($stmt);
 
+        // Handle image upload
         if ($category_image['error'] != UPLOAD_ERR_NO_FILE) {
             if (!in_array($category_image['type'], ['image/jpeg', 'image/png', 'image/gif'])) {
                 $error = "Invalid image format. Only JPG, PNG, and GIF are allowed.";
             } elseif ($category_image['size'] > 2 * 1024 * 1024) { // 2MB limit
                 $error = "Image size should not exceed 2MB.";
             } else {
-                $image_path = 'uploads/' . basename($category_image['name']);
+                $image_path = $upload_dir . basename($category_image['name']);
                 if (move_uploaded_file($category_image['tmp_name'], $image_path)) {
+                    // Update category image
                     $stmt = mysqli_prepare($connection, "UPDATE categories SET category_image = ? WHERE id = ?");
                     mysqli_stmt_bind_param($stmt, "si", $image_path, $category_id);
                     mysqli_stmt_execute($stmt);
@@ -83,6 +92,7 @@ if (isset($_POST['delete_subcategory'])) {
     $success = "Subcategory deleted successfully!";
 }
 
+// Handle subcategory addition
 if (isset($_POST['add_subcategory'])) {
     $category_id = $_POST['category_id'];
     $subcategory_name = trim($_POST['subcategory_name']);
@@ -99,62 +109,90 @@ if (isset($_POST['add_subcategory'])) {
         }
     }
 }
-// Fetch categories and subcategories
+
+// Pagination and filtering logic
+$category_filter = isset($_GET['category_filter']) ? $_GET['category_filter'] : '';
+$search_query = isset($_GET['search_query']) ? trim($_GET['search_query']) : '';
+$items_per_page = 1;
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $items_per_page;
+
+// Fetch categories and subcategories with pagination, filtering, and search
+// Fetch only the categories with pagination and search
 $categories = [];
-$query = "SELECT c.id as category_id, c.category_name, c.category_image, s.id as subcategory_id, s.subcategory_name
-          FROM categories c
-          LEFT JOIN subcategories s ON c.id = s.category_id";
-$result = mysqli_query($connection, $query);
+$where_clause = "WHERE category_name LIKE ?";
+$query = "SELECT id as category_id, category_name, category_image
+          FROM categories
+          $where_clause
+          LIMIT ? OFFSET ?";
+$stmt = mysqli_prepare($connection, $query);
+$search_term = '%' . $search_query . '%';
+mysqli_stmt_bind_param($stmt, "sii", $search_term, $items_per_page, $offset);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+
 while ($row = mysqli_fetch_assoc($result)) {
-    $categories[$row['category_id']]['name'] = $row['category_name'];
-    $categories[$row['category_id']]['image'] = $row['category_image'];
-    $categories[$row['category_id']]['subcategories'][] = [
-        'id' => $row['subcategory_id'],
-        'name' => $row['subcategory_name']
+    $categories[$row['category_id']] = [
+        'name' => $row['category_name'],
+        'image' => $row['category_image'],
+        'subcategories' => []
     ];
 }
 
+if (!empty($categories)) {
+    $category_ids = array_keys($categories);
+    $in_clause = implode(',', array_fill(0, count($category_ids), '?'));
+    $query = "SELECT id as subcategory_id, subcategory_name, category_id
+              FROM subcategories
+              WHERE category_id IN ($in_clause)";
+    $stmt = mysqli_prepare($connection, $query);
+    mysqli_stmt_bind_param($stmt, str_repeat('i', count($category_ids)), ...$category_ids);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        $categories[$row['category_id']]['subcategories'][] = [
+            'id' => $row['subcategory_id'],
+            'name' => $row['subcategory_name']
+        ];
+    }
+}
+
+
+// Get the total number of categories for pagination
+$count_query = "SELECT COUNT(DISTINCT c.id) as total_categories FROM categories c";
+$count_query .= " WHERE c.category_name LIKE ?";
+$count_stmt = mysqli_prepare($connection, $count_query);
+mysqli_stmt_bind_param($count_stmt, "s", $search_term);
+mysqli_stmt_execute($count_stmt);
+$count_result = mysqli_stmt_get_result($count_stmt);
+$total_categories = mysqli_fetch_assoc($count_result)['total_categories'];
+$total_pages = ceil($total_categories / $items_per_page);
+
 mysqli_close($connection);
 ?>
-
 <!DOCTYPE html>
 <html>
 
 <head>
     <title>Manage Categories and Subcategories</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.1/css/boxicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Poppins", sans-serif;
-        }
-
-        body {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #3c41a1;
-            padding: 20px;
-        }
-
-        .wrapper {
-            width: 1000px;
-            padding: 40px 30px 50px 30px;
-            background: #fff;
+        .alert {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
             border-radius: 5px;
-            text-align: center;
-            box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: all 1s;
+            margin-bottom: 20px;
         }
 
-        .wrapper header {
-            font-size: 35px;
-            font-weight: 600;
-            margin-bottom: 20px;
+        .alert.error {
+            background-color: #dc3545;
         }
 
         table {
@@ -209,96 +247,133 @@ mysqli_close($connection);
             background-color: #2c52ed;
         }
 
-        .alert {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            transition: all 1s;
-            margin-bottom: 20px;
+        .sign-txt a {
+            text-decoration: none;
+            color: #5372F0;
         }
 
-        .alert.error {
-            background-color: #dc3545;
+        .sign-txt a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
-    <div class="wrapper">
-        <header>Manage Categories and Subcategories</header>
+    <?php include_once 'sidebar.php'; ?>
+
+    <div class="dash-content">
+        <h2>Manage Categories and Subcategories</h2>
         <?php if ($error): ?>
             <div class="alert error"><?php echo $error; ?></div>
         <?php elseif ($success): ?>
             <div class="alert"><?php echo $success; ?></div>
         <?php endif; ?>
-        <table>
-            <tr>
-                <th>Category Name</th>
-                <th>Category Image</th>
-                <th>Subcategories</th>
-                <th>Actions</th>
-            </tr>
-            <?php foreach ($categories as $category_id => $category): ?>
+
+        <div class="d-flex justify-content-between mb-4">
+            <div>
+                <form class="d-flex" method="GET" action="">
+                    <input type="text" name="search_query" class="form-control me-2"
+                        placeholder="Search by category name" value="<?php echo htmlspecialchars($search_query); ?>">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
+            </div>
+        </div>
+
+        <table class="table table-bordered text-center">
+            <thead>
                 <tr>
-                    <td><?php echo $category['name']; ?></td>
-                    <td><img src="<?php echo $category['image']; ?>" alt="Category Image" width="50"></td>
-                    <td>
-                        <ul>
-                            <?php if (!empty($category['subcategories'])): ?>
-                                <?php foreach ($category['subcategories'] as $subcategory): ?>
-                                    <li>
-                                        <?php echo $subcategory['name']; ?>
-                                        <form action="manage_categories.php" method="POST" style="display: inline;">
-                                            <input type="hidden" name="subcategory_id" value="<?php echo $subcategory['id']; ?>">
-                                            <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
-                                            <input type="text" name="subcategory_name" value="<?php echo $subcategory['name']; ?>"
-                                                required>
-                                            <input type="submit" name="update_subcategory" value="Update">
-                                            <input type="submit" name="delete_subcategory" value="Delete">
-                                        </form>
-                                    </li>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </ul>
-                        <form action="manage_categories.php" method="POST">
-                            <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
-                            <input type="text" name="subcategory_name" placeholder="New Subcategory Name" required>
-                            <input type="submit" name="add_subcategory" value="Add Subcategory">
-                        </form>
-                    </td>
-                    <td>
-                        <form action="manage_categories.php" method="POST" enctype="multipart/form-data">
-                            <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
-                            <input type="text" name="category_name" value="<?php echo $category['name']; ?>" required>
-                            <input type="file" name="category_image">
-                            <input type="submit" name="update_category" value="Update">
-                            <input type="submit" name="delete_category" value="Delete">
-                        </form>
-                    </td>
+                    <th>Category ID</th>
+                    <th>Category Name</th>
+                    <th>Category Image</th>
+                    <th>Action</th>
                 </tr>
-            <?php endforeach; ?>
+            </thead>
+            <tbody>
+                <?php foreach ($categories as $category_id => $category): ?>
+                    <tr>
+                        <td><?php echo $category_id; ?></td>
+                        <td><?php echo htmlspecialchars($category['name']); ?></td>
+                        <td>
+                            <?php if ($category['image']): ?>
+                                <img src="<?php echo htmlspecialchars($category['image']); ?>" alt="Category Image"
+                                    style="width: 50px; height: 50px;">
+                            <?php else: ?>
+                                No Image
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <form method="POST" action="" enctype="multipart/form-data" style="display: inline-block;">
+                                <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
+                                <input type="text" name="category_name"
+                                    value="<?php echo htmlspecialchars($category['name']); ?>">
+                                <input type="file" name="category_image">
+                                <button type="submit" name="update_category" class="btn btn-primary">Update</button>
+                            </form>
+                            <form method="POST" action="" style="display: inline-block;">
+                                <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
+                                <button type="submit" name="delete_category" class="btn btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php if (!empty($category['subcategories'])): ?>
+                        <?php foreach ($category['subcategories'] as $subcategory): ?>
+                            <tr>
+                                <td colspan="3"><b>Subcategories </b>— <?php echo htmlspecialchars($subcategory['name']); ?></td>
+                                <td>
+                                    <form method="POST" action="" style="display: inline-block;">
+                                        <input type="hidden" name="subcategory_id" value="<?php echo $subcategory['id']; ?>">
+                                        <input type="text" name="subcategory_name" class="mx-2"
+                                            value="<?php echo htmlspecialchars($subcategory['name']); ?> ">
+                                        <button type="submit" name="update_subcategory" class="btn btn-primary mx-2">Update</button>
+                                    </form>
+                                    <form method="POST" action="" style="display: inline-block;">
+                                        <input type="hidden" name="subcategory_id" value="<?php echo $subcategory['id']; ?>">
+                                        <button type="submit" name="delete_subcategory" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    <tr>
+                        <td colspan="4">
+                            <form method="POST" action="" class="d-flex">
+                                <input type="hidden" name="category_id" value="<?php echo $category_id; ?>">
+                                <input type="text" name="subcategory_name" placeholder="New Subcategory Name" required>
+                                <button type="submit" name="add_subcategory" class="btn btn-success mx-2">Add
+                                    Subcategory</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
         </table>
-        <div class="sign-txt"><a href="dashboard.php">Back to Dashboard</a></div>
+
+        <!-- Pagination logic and display -->
+        <nav>
+            <ul class="pagination justify-content-center">
+                <?php if ($page > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page=<?php echo $page - 1; ?>&search_query=<?php echo urlencode($search_query); ?>">Previous</a>
+                    </li>
+                <?php endif; ?>
+
+                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
+                        <a class="page-link"
+                            href="?page=<?php echo $i; ?>&search_query=<?php echo urlencode($search_query); ?>"><?php echo $i; ?></a>
+                    </li>
+                <?php endfor; ?>
+
+                <?php if ($page < $total_pages): ?>
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page=<?php echo $page + 1; ?>&search_query=<?php echo urlencode($search_query); ?>">Next</a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
     </div>
-
-    <script>
-        const form = document.querySelectorAll("form");
-
-        // on submit form refresh page after completing it's work
-        form.forEach(form => {
-            form.addEventListener("submit", event => {
-                form.submit();
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000)
-                // event.preventDefault();
-            });
-        });
-
-
-    </script>
 </body>
 
 </html>

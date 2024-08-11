@@ -25,6 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     } elseif ($role == 'SuperAdmin') {
       header('Location: dashboard.php');
+    } elseif ($role == 'Operator') {
+      header('Location: dashboard.php');
     }
 
 

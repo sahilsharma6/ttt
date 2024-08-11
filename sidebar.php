@@ -35,20 +35,27 @@ $username = $_SESSION['username'];
         </ul>
       </li>
       <li>
+        <?php
+        if ($_SESSION['role'] == 'SuperAdmin' || $_SESSION['role'] == 'Admin') {
+          echo '
         <div class="iocn-link">
           <a href="#">
-            <i class='bx bx-collection'></i>
+            <i class="bx bx-collection"></i>
             <span class="link_name">Category</span>
           </a>
-          <i class='bx bxs-chevron-down arrow'></i>
+          <i class="bx bxs-chevron-down arrow"></i>
         </div>
         <ul class="sub-menu">
           <li><a class="link_name" href="">Category</a></li>
           <li><a href="manage_categories.php">Categories</a></li>
           <li><a href="./AddCategories.php">Add Categories</a></li>
-        </ul>
+        </ul> 
       </li>
       <li>
+      ';
+        }
+
+        ?>
         <div class="iocn-link">
           <a href="#">
             <i class='bx bx-book-alt'></i>
