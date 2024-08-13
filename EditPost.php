@@ -48,11 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
     $content = $_POST['content'];
     $category_id = $_POST['category_id'];
     $subcategory_id = $_POST['subcategory_id'];
+    $views = $_POST['views'];
 
     if (!empty($title) && !empty($content) && !empty($category_id) && !empty($subcategory_id)) {
         // Prepare an update statement
-        $stmt = mysqli_prepare($connection, "UPDATE posts SET title = ?, content = ?, category_id = ?, subcategory_id = ? WHERE id = ?");
-        mysqli_stmt_bind_param($stmt, "ssiii", $title, $content, $category_id, $subcategory_id, $post_id);
+        $stmt = mysqli_prepare($connection, "UPDATE posts SET title = ?, content = ?, category_id = ?, subcategory_id = ?, views = ? WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "ssiiii", $title, $content, $category_id, $subcategory_id, $views, $post_id);
 
         if (mysqli_stmt_execute($stmt)) {
             $success = "Post updated successfully!";
@@ -127,6 +128,11 @@ mysqli_close($connection);
                         </option>
                     <?php endforeach; ?>
                 </select>
+            </div>
+            <div class="mb-3">
+                <label for="views" class="form-label">views</label>
+                <input type="number" class="form-control" id="views" name="views"
+                    value="<?php echo htmlspecialchars($post['views'] ?? ''); ?>" required>
             </div>
             <button type="submit" class="btn btn-primary" name="update_post">Update Post</button>
         </form>

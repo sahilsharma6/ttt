@@ -74,17 +74,37 @@ if ($post_id) {
     }
 
     // Fetch comments
+    $limit = 5;
+    $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+    $offset = ($page - 1) * $limit;
+
+    // Fetch comments with pagination
     $comments_query = "SELECT comments.id, comments.comment, comments.created_at, testt.username, comments.user_id 
-                            FROM comments 
-                            JOIN testt ON comments.user_id = testt.id 
-                            WHERE post_id = ? 
-                            ORDER BY comments.created_at DESC";
+                       FROM comments 
+                       JOIN testt ON comments.user_id = testt.id 
+                       WHERE post_id = ? 
+                       ORDER BY comments.created_at DESC 
+                       LIMIT ? OFFSET ?";
+
     $stmt = mysqli_prepare($connection, $comments_query);
-    mysqli_stmt_bind_param($stmt, "i", $post_id);
+    mysqli_stmt_bind_param($stmt, "iii", $post_id, $limit, $offset);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     $comments = mysqli_fetch_all($result, MYSQLI_ASSOC);
     mysqli_stmt_close($stmt);
+
+
+    // Calculate total number of pages
+    $total_comments_query = "SELECT COUNT(*) as total FROM comments WHERE post_id = ?";
+    $stmt = mysqli_prepare($connection, $total_comments_query);
+    mysqli_stmt_bind_param($stmt, "i", $post_id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $total_comments = mysqli_fetch_assoc($result)['total'];
+    mysqli_stmt_close($stmt);
+
+    // echo $total_comments;
+    $total_pages = ceil($total_comments / $limit);
 }
 
 // Determine the position of the current post in the $posts array
@@ -404,11 +424,8 @@ mysqli_close($connection);
                             <i class="fab fa-twitter"></i> Share on Twitter
                         </a>
 
-                        <!-- LinkedIn -->
-                        <a href="https://www.linkedin.com/shareArticle?mini=true&url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&title=<?php echo urlencode($current_post['title']); ?>"
-                            target="_blank" class="btn btn-primary">
-                            <i class="fab fa-linkedin-in"></i> Share on LinkedIn
-                        </a>
+                        <!-- Instagram -->
+                        <a href="http"></a>
 
                         <!-- WhatsApp -->
                         <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
@@ -419,7 +436,7 @@ mysqli_close($connection);
 
 
                     <div class="comments">
-                        <h3>Comments (<?php echo count($comments); ?>) </h3>
+                        <h3>Comments (<?php echo $total_comments; ?>) </h3>
                         <?php if (isset($_SESSION['username'])): ?>
                             <form method="POST">
                                 <div class="form-group">
@@ -427,10 +444,14 @@ mysqli_close($connection);
                                         echo htmlspecialchars($comments[array_search((int) $_GET['edit_comment_id'], array_column($comments, 'id'))]['comment']);
                                     } ?></textarea>
                                 </div>
+                                <!-- reCAPTCHA widget -->
+                                <div class="g-recaptcha" data-sitekey="your-site-key"></div>
+
                                 <button type="submit"
                                     class="btn btn-primary mt-2"><?php echo isset($_GET['edit_comment_id']) ? 'Update Comment' : 'Post Comment'; ?></button>
                             </form>
 
+                            <script src="https://www.google.com/recaptcha/api.js" async defer></script>
                         <?php else: ?>
                             <p>Please <a href="login.php">login</a> to post comments.</p>
                         <?php endif; ?>
@@ -447,7 +468,8 @@ mysqli_close($connection);
 
 
                                     <p><?php echo nl2br(htmlspecialchars($comment['comment'])); ?></p>
-                                    <small><?php echo htmlspecialchars($comment['created_at']); ?></small>
+                                    <small><?php echo htmlspecialchars(date('m/d/Y', strtotime($comment['created_at']))); ?></small>
+
                                     <?php if ($comment['user_id'] == isset($_SESSION['user_id'])): ?>
                                         <a href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&edit_comment_id=<?php echo $comment['id']; ?>"
                                             class="btn btn-sm btn-outline-secondary">Edit</a>
@@ -461,6 +483,39 @@ mysqli_close($connection);
 
                         </ul>
                     </div>
+
+
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mt-3">
+                            <?php if ($page > 1): ?>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&page=<?php echo $page - 1; ?>"
+                                        aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
+                                    <a class="page-link"
+                                        href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&page=<?php echo $i; ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+                            <?php if ($page < $total_pages): ?>
+                                <li class="page-item">
+                                    <a class="page-link"
+                                        href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&page=<?php echo $page + 1; ?>"
+                                        aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </nav>
+
                 <?php endif; ?>
             </div>
         </div>

@@ -27,10 +27,26 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
         </a>
         <form class="d-flex" method="POST" action="search.php" role="search" style="margin-right: 100px">
             <!-- <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search" /> -->
-            <input class="form-control me-2 search" type="search" name="q" placeholder="Search" aria-label="Search" />
+            <div class="d-flex search border p-2">
+                <input class="form-control me-2 " type="search" name="q" placeholder="Search" aria-label="Search" />
+                <button class="btn btn-outline-dark " type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
 
             <!-- <button class="btn btn-outline-success" type="submit">Search</button> -->
         </form>
+        <div id="google_translate_element"></div>
+
+        <script type="text/javascript">
+            function googleTranslateElementInit() {
+                new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
+            }
+        </script>
+
+        <script type="text/javascript"
+            src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
         <div class="position-absolute login">
             <?php if ($is_logged_in): ?>
                 <!-- <span> <?php echo $username; ?></span> -->
@@ -42,6 +58,8 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
         </div>
     </div>
 </header>
+
+
 
 
 

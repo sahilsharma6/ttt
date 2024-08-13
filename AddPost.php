@@ -24,11 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $content = $_POST['content'];
         $category_id = $_POST['category_id'];
         $subcategory_id = $_POST['subcategory_id'];
+        $views = $_POST['views'];
 
         if (!empty($title) && !empty($content) && !empty($category_id) && !empty($subcategory_id)) {
             // Prepare an insert statement
-            $stmt = mysqli_prepare($connection, "INSERT INTO posts (title, content, category_id, subcategory_id) VALUES (?, ?, ?, ?)");
-            mysqli_stmt_bind_param($stmt, "ssii", $title, $content, $category_id, $subcategory_id);
+            $stmt = mysqli_prepare($connection, "INSERT INTO posts (title, content, category_id, subcategory_id, views) VALUES (?, ?, ?, ?, ?)");
+            mysqli_stmt_bind_param($stmt, "ssiii", $title, $content, $category_id, $subcategory_id, $views);
 
             if (mysqli_stmt_execute($stmt)) {
                 $success = "Post added successfully!";
@@ -109,6 +110,10 @@ mysqli_close($connection);
                     <option value="">Select a subcategory</option>
                     <!-- Subcategories will be loaded here via AJAX -->
                 </select>
+            </div>
+            <div class="mb-3">
+                <label for="views" class="form-label">Views</label>
+                <input type="number" class="form-control" id="views" name="views" required>
             </div>
             <button type="submit" class="btn btn-primary" name="add_post">Add Post</button>
         </form>
