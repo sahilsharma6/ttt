@@ -1,6 +1,6 @@
 <?php
 
-// session_start(); 
+// session_start();
 require 'db.php';
 
 // Fetch categories from the database
@@ -43,17 +43,40 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
 ?>
 
 
-<header class="bg-light py-3 position-relative">
-    <div class="container-fluid d-flex justify-content-align-items-center">
+
+
+<header class="bg-light py-3 position-relative ">
+    <div class="container-fluid d-flex justify-content- align-items-center">
         <a class="navbar-brand" href="./check.php">
             <img src="uploads/logo.png" height="80" alt="logo">
         </a>
         <form class="d-flex" method="POST" action="search.php" role="search" style="margin-right: 100px">
-            <input class="form-control me-2 search" type="search" name="q" placeholder="Search" aria-label="Search" />
+            <!-- <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search" /> -->
+            <div class="d-flex search border p-2">
+                <input class="form-control me-2 " type="search" name="q" placeholder="Search" aria-label="Search" />
+                <button class="btn btn-outline-dark " type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- <button class="btn btn-outline-success" type="submit">Search</button> -->
         </form>
+        <div id="google_translate_element"></div>
+
+        <script type="text/javascript">
+            function googleTranslateElementInit() {
+                new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
+            }
+        </script>
+
+        <script type="text/javascript"
+            src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
         <div class="position-absolute login">
             <?php if ($is_logged_in): ?>
+                <!-- <span> <?php echo $username; ?></span> -->
                 <a href="logout.php" style="text-decoration: none;">logout</a>
+
             <?php else: ?>
                 <a href="login.php" style="text-decoration: none;">login</a>
             <?php endif; ?>
@@ -61,39 +84,11 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
     </div>
 </header>
 
-<nav class="mynav">
-    <ul>
-        <?php if ($current_category === null): ?>
-            <!-- Display all categories -->
-            <?php foreach ($categories as $category): ?>
-                <a href="?category_id=<?php echo $category['id']; ?>">
-                    <li>
-                        <div>
-                            <img src="<?php echo $category['category_image']; ?>" height="20"
-                                alt="<?php echo htmlspecialchars($category['category_name']); ?>">
-                            <span class="na"><?php echo htmlspecialchars($category['category_name']); ?></span>
-                        </div>
-                    </li>
-                </a>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <!-- Display only the selected category -->
-            <a href="?">
-                <li>
-                    <div>
-                        <img src="<?php echo $current_category['category_image']; ?>" height="20"
-                            alt="<?php echo htmlspecialchars($current_category['category_name']); ?>">
-                        <span class="na"><?php echo htmlspecialchars($current_category['category_name']); ?></span>
-                    </div>
-                </li>
-            </a>
-        <?php endif; ?>
-    </ul>
-</nav>
+
 
 <?php if ($current_category !== null): ?>
-    <div class="mynav">
-        <h1><?php echo htmlspecialchars($current_category['category_name']); ?> Navigation Links</h1>
+    <nav class="mynav">
+        <!-- <h1><?php echo htmlspecialchars($current_category['category_name']); ?> Navigation Links</h1> -->
         <ul>
             <?php if (!empty($navlinks)): ?>
                 <?php foreach ($navlinks as $navlink): ?>
@@ -108,16 +103,55 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
 
                     // echo '<li><img src="' . $category['category_image'] . '" alt=""></li>';
                     // $category_img = $category['category_image'];
-                    echo $navlink_id;
+                    // echo $navlink_id;
+                    // echo $navlink['url'];
+                    // echo $category['category_image'];
+                    // foreach()
+                    // if ($category !== null):
+        
                     ?>
-                    <li><img src="<?php echo $category['category_image']; ?>" height="30" alt=""></li>
-                    <li><a href="<?php echo htmlspecialchars($navlink['url']); ?>">
-                            <?php echo htmlspecialchars($navlink['name']); ?>
-                        </a></li>
+
+
+                    <a href="<?php echo htmlspecialchars($navlink['url']); ?>">
+
+                        <li class="">
+                            <div class="">
+
+                                <img src="<?php echo $category['category_image']; ?>" height="20" alt="">
+                                <span class="na">
+                                    <?php echo htmlspecialchars($navlink['name']); ?>
+                                </span>
+                            </div>
+                        </li>
+                    </a>
+
+
+
+
+
                 <?php endforeach; ?>
             <?php else: ?>
-                <li>No navigation links available for this category.</li>
+                <!-- <li>No navigation links available for this category.</li> -->
+
+                <nav class="mynav">
+                    <ul>
+                        <?php foreach ($categories as $category): ?>
+                            <a href="post.php?category_id=<?php echo $category['id']; ?>">
+                                <li class="">
+                                    <div class="">
+
+                                        <img src="<?php echo $category['category_image']; ?>" height="20"
+                                            alt="<?php echo htmlspecialchars($category['category_name']); ?>">
+                                        <span class="na">
+                                            <?php echo htmlspecialchars($category['category_name']); ?>
+                                        </span>
+                                    </div>
+                                </li>
+                            </a>
+                        <?php endforeach; ?>
+                    </ul>
+                </nav>
             <?php endif; ?>
         </ul>
-    </div>
+    </nav>
 <?php endif; ?>

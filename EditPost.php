@@ -3,7 +3,7 @@ session_start();
 require 'db.php';
 
 // Check if the user is logged in and has the right role
-if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'Admin' && $_SESSION['role'] !== 'SuperAdmin')) {
+if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'Admin' && $_SESSION['role'] !== 'SuperAdmin') && $_SESSION['role'] !== 'Operator') {
     header("Location: login.php");
     exit();
 }

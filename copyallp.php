@@ -18,7 +18,7 @@ $category_filter = isset($_GET['category_filter']) ? $_GET['category_filter'] : 
 $search_query = isset($_GET['search_query']) ? $_GET['search_query'] : '';
 
 // Build SQL query
-$sql = "SELECT posts.id, posts.title, posts.content, posts.created_at, categories.category_name 
+$sql = "SELECT posts.id, posts.title, posts.content, posts.created_at, posts.created_by ,posts.status, categories.category_name 
         FROM posts 
         JOIN categories ON posts.category_id = categories.id ";
 
@@ -160,6 +160,8 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                 <th>Title</th>
                 <th>Content</th>
                 <th>Category</th>
+                <th>Status</th>
+                <th>created_by</th>
                 <th>Action</th>
             </tr>
             <?php while ($row = mysqli_fetch_assoc($result)): ?>
@@ -181,9 +183,59 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                     </td>
                     <td><?php echo htmlspecialchars($row['category_name']); ?></td>
                     <td>
-                        <a href="EditPost.php?id=<?php echo $row['id']; ?>">Edit</a> |
-                        <a href="DeletePost.php?id=<?php echo $row['id']; ?>"
-                            onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
+
+                    <!-- Approve/Reject button -->
+                    <?php if ($_SESSION['role'] === 'SuperAdmin'): ?>
+                        <!-- <form> -->
+                            <input type="checkbox" class="status-toggle" data-id="<?php echo $row['id']; ?>"
+                            <?php if ($row['status'] === 'approved') echo 'checked'; ?> >
+                        <!-- </form> -->
+
+                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                        <script>
+
+document.querySelectorAll('.status-toggle').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            const postId = this.getAttribute('data-id');
+            // const postId =<?php echo $row['id']; ?>
+            const status = this.checked ? 'approved' : 'pending';
+            console.log(postId, status);    
+            fetch('utils/toggle_post_status.php?id=' + postId + '&status=' + status + '', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Status updated successfully');
+                } else {
+                    console.error('Failed to update status');
+                    console.log(data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+                        </script>
+                    <?php endif; ?>
+                        <span><?php echo $row['status'];?></span>
+                    </td>
+                    <td>
+                        <?php echo htmlspecialchars($row['created_by']); ?>
+                    </td>
+
+                    <td>
+                        <a href="EditPost.php?id=<?php echo $row['id']; ?>">Edit</a>
+                        <?php if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'SuperAdmin'): ?>
+                            |
+                            <a href="DeletePost.php?id=<?php echo $row['id']; ?>"
+                                onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endwhile; ?>

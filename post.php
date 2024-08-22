@@ -19,7 +19,7 @@ if ($category_result) {
 $subcategories = [];
 if ($category_id) {
     // Fetch subcategories
-    $subcategories_query = "SELECT id, subcategory_name FROM subcategories WHERE category_id = ?";
+    $subcategories_query = "SELECT id, subcategory_name FROM subcategories WHERE category_id = ? ";
     $stmt = mysqli_prepare($connection, $subcategories_query);
     mysqli_stmt_bind_param($stmt, "i", $category_id);
     mysqli_stmt_execute($stmt);
@@ -36,7 +36,7 @@ if ($category_id) {
 // Fetch posts for the selected subcategory
 $posts = [];
 if ($subcategory_id) {
-    $posts_query = "SELECT id, title FROM posts WHERE subcategory_id = ?";
+    $posts_query = "SELECT id, title FROM posts WHERE subcategory_id = ? AND status='approved'";
     $stmt = mysqli_prepare($connection, $posts_query);
     mysqli_stmt_bind_param($stmt, "i", $subcategory_id);
     mysqli_stmt_execute($stmt);
@@ -54,13 +54,13 @@ if ($subcategory_id) {
 // Fetch the selected post
 $current_post = [];
 if ($post_id) {
-    $update_views_query = "UPDATE posts SET views = views + 1 WHERE id = ?";
+    $update_views_query = "UPDATE posts SET views = views + 1 WHERE id = ? AND status='approved'";
     $stmt = mysqli_prepare($connection, $update_views_query);
     mysqli_stmt_bind_param($stmt, "i", $post_id);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
 
-    $post_query = "SELECT id, title, content, views FROM posts WHERE id = ?";
+    $post_query = "SELECT id, title, content, views,likes,created_at,status FROM posts WHERE id = ? AND status='approved'";
     $stmt = mysqli_prepare($connection, $post_query);
     mysqli_stmt_bind_param($stmt, "i", $post_id);
     mysqli_stmt_execute($stmt);
@@ -73,38 +73,44 @@ if ($post_id) {
         $current_post = ['title' => 'No post found', 'content' => '', 'views' => 0];
     }
 
+    // echo $current_post['status'] == "approved" ? "approved" : "pending";
+
     // Fetch comments
-    $limit = 5;
-    $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-    $offset = ($page - 1) * $limit;
+    // $limit = 5;
+    // $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+    // $offset = ($page - 1) * $limit;
 
-    // Fetch comments with pagination
-    $comments_query = "SELECT comments.id, comments.comment, comments.created_at, testt.username, comments.user_id 
-                       FROM comments 
-                       JOIN testt ON comments.user_id = testt.id 
-                       WHERE post_id = ? 
-                       ORDER BY comments.created_at DESC 
-                       LIMIT ? OFFSET ?";
+    // // Fetch comments with pagination
+    // $comments_query = "SELECT comments.id, comments.comment, comments.created_at, testt.username, comments.user_id 
+    //                    FROM comments 
+    //                    JOIN testt ON comments.user_id = testt.id 
+    //                    WHERE post_id = ? 
+    //                    ORDER BY comments.created_at DESC 
+    //                    LIMIT ? OFFSET ?";
 
-    $stmt = mysqli_prepare($connection, $comments_query);
-    mysqli_stmt_bind_param($stmt, "iii", $post_id, $limit, $offset);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $comments = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    mysqli_stmt_close($stmt);
+    // $stmt = mysqli_prepare($connection, $comments_query);
+    // mysqli_stmt_bind_param($stmt, "iii", $post_id, $limit, $offset);
+    // mysqli_stmt_execute($stmt);
+    // $result = mysqli_stmt_get_result($stmt);
+    // $comments = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    // mysqli_stmt_close($stmt);
 
 
-    // Calculate total number of pages
-    $total_comments_query = "SELECT COUNT(*) as total FROM comments WHERE post_id = ?";
-    $stmt = mysqli_prepare($connection, $total_comments_query);
-    mysqli_stmt_bind_param($stmt, "i", $post_id);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $total_comments = mysqli_fetch_assoc($result)['total'];
-    mysqli_stmt_close($stmt);
+    // // // Calculate total number of pages
+    // $total_comments_query = "SELECT COUNT(*) as total FROM comments WHERE post_id = ?";
+    // $stmt = mysqli_prepare($connection, $total_comments_query);
+    // mysqli_stmt_bind_param($stmt, "i", $post_id);
+    // mysqli_stmt_execute($stmt);
+    // $result = mysqli_stmt_get_result($stmt);
+    // $total_comments = mysqli_fetch_assoc($result)['total'];
+    // mysqli_stmt_close($stmt);
 
-    // echo $total_comments;
-    $total_pages = ceil($total_comments / $limit);
+    // // echo $total_comments;
+    // $total_pages = ceil($total_comments / $limit);
+
+    // $total_comments = "SELECT COUNT(*) as total FROM comments WHERE post_id = $post_id";
+    // $result = mysqli_query($connection, $total_comments);
+    // $total_comments = mysqli_fetch_assoc($result)['total'];
 }
 
 // Determine the position of the current post in the $posts array
@@ -150,49 +156,8 @@ if ($current_post_index === count($posts) - 1 && !empty($subcategories)) {
     }
 }
 
-// Handle comment form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['comment'])) {
-    if (isset($_SESSION['user_id'])) {
-        $user_id = $_SESSION['user_id'];
-        $comment = $_POST['comment'];
 
-        if (isset($_GET['edit_comment_id'])) {
-            $edit_comment_id = (int) $_GET['edit_comment_id'];
-            $update_comment_query = "UPDATE comments SET comment = ? WHERE id = ? AND user_id = ?";
-            $stmt = mysqli_prepare($connection, $update_comment_query);
-            mysqli_stmt_bind_param($stmt, "sii", $comment, $edit_comment_id, $user_id);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-        } else {
-            $insert_comment_query = "INSERT INTO comments (post_id, user_id, comment) VALUES (?, ?, ?)";
-            $stmt = mysqli_prepare($connection, $insert_comment_query);
-            mysqli_stmt_bind_param($stmt, "iis", $post_id, $user_id, $comment);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-        }
 
-        header("Location: post.php?category_id=$category_id&subcategory_id=$subcategory_id&post_id=$post_id");
-        exit;
-    } else {
-        header("Location: login.php");
-        exit;
-    }
-}
-
-// Handle comment deletion
-if (isset($_GET['delete_comment_id']) && isset($_SESSION['user_id'])) {
-    $delete_comment_id = (int) $_GET['delete_comment_id'];
-    $user_id = $_SESSION['user_id'];
-    $delete_comment_query = "DELETE FROM comments WHERE id = ? AND user_id = ?";
-    $stmt = mysqli_prepare($connection, $delete_comment_query);
-    mysqli_stmt_bind_param($stmt, "ii", $delete_comment_id, $user_id);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
-
-    echo "<script>alert('Are you sure you want to delete this comment?');</script>";
-    header("Location: post.php?category_id=$category_id&subcategory_id=$subcategory_id&post_id=$post_id");
-    exit;
-}
 
 mysqli_close($connection);
 ?>
@@ -345,7 +310,7 @@ mysqli_close($connection);
 
 <body>
 
-    <?php include 'header.php'; ?>
+    <?php include 'safeheader.php'; ?>
 
     <div class="container-fluid">
         <div class="row">
@@ -358,7 +323,7 @@ mysqli_close($connection);
                     <ul class="list-group">
                         <?php
                         // Fetch posts for the current subcategory
-                        $posts_query = "SELECT id, title FROM posts WHERE subcategory_id = ?";
+                        $posts_query = "SELECT id, title FROM posts WHERE subcategory_id = ? AND status='approved'";
                         $stmt = mysqli_prepare($connection, $posts_query);
                         mysqli_stmt_bind_param($stmt, "i", $subcategory['id']);
                         mysqli_stmt_execute($stmt);
@@ -367,10 +332,12 @@ mysqli_close($connection);
                         mysqli_stmt_close($stmt);
 
                         foreach ($posts as $post): ?>
+                            <!-- if post status is approved then show -->
                             <li class="list-group-item">
                                 <a
                                     href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory['id']; ?>&post_id=<?php echo $post['id']; ?>">
                                     <i class="fas fa-file-alt"></i> <!-- Example icon for posts -->
+
                                     <span>
                                         <?php echo htmlspecialchars($post['title']); ?>
                                     </span>
@@ -410,114 +377,468 @@ mysqli_close($connection);
                         <?php endif; ?>
                     </div>
 
-                    <div class="share-buttons">
+
+                    <!-- ------------------likes------------------ -->
+                    <div class="like" role="button">
+                        <i class="fa-regular fa-thumbs-up" id="like-button"></i>
+                        <span id="like-count"> </span>
+                    </div>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const likeButton = document.getElementById('like-button');
+                            const likeCount = document.getElementById('like-count');
+                            let postId = <?php echo json_encode($post_id); ?>;
+
+
+                            function fetchLikeCount() {
+
+                                fetch('utils/fetch_like_count.php?post_id=' + postId + '', {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        likeCount.textContent = `Likes ${data.like_count}`;
+                                        console.log(data);
+                                    })
+                                    .catch(error => console.error('Error:', error));
+                            }
+
+                            likeButton.addEventListener('click', function () {
+                                fetch('utils/like_post.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded'
+                                    },
+                                    body: `post_id=${postId}`
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // likeButton.classList.toggle('fa-solid');
+                                            fetchLikeCount();
+                                        } else {
+                                            console.error('Error liking/unliking post');
+                                        }
+                                    })
+                                    .catch(error => console.error('Error:', error));
+                            });
+
+                            fetchLikeCount();
+                        });
+                    </script>
+
+
+
+                    <!-- ------------------------------------- -->
+
+
+                    <!-- share -->
+                    <!-- <div class="share-buttons">
                         <h4>Share this post:</h4>
-                        <!-- Facebook -->
                         <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
                             target="_blank" class="btn btn-primary">
                             <i class="fab fa-facebook-f"></i> Share on Facebook
                         </a>
 
-                        <!-- Twitter -->
                         <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
                             target="_blank" class="btn btn-info">
                             <i class="fab fa-twitter"></i> Share on Twitter
                         </a>
 
-                        <!-- Instagram -->
                         <a href="http"></a>
 
-                        <!-- WhatsApp -->
                         <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
                             target="_blank" class="btn btn-success">
                             <i class="fab fa-whatsapp"></i> Share on WhatsApp
                         </a>
+                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                            target="_blank" class="btn btn-success">
+                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                        </a>
+
+                    </div> -->
+
+
+                    <!-- Three-dot button -->
+
+                    <style>
+                        .share-container {
+                            position: relative;
+                            display: inline-block;
+                        }
+
+                        .share-btn {
+                            background-color: #f8f9fa;
+                            border: none;
+                            border-radius: 50%;
+                            padding: 8px;
+                            cursor: pointer;
+                        }
+
+                        .share-options {
+                            display: none;
+                            position: absolute;
+                            top: 100%;
+                            right: 0;
+                            background-color: #fff;
+                            border: 1px solid #ddd;
+                            border-radius: 4px;
+                            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+                            z-index: 1;
+                            min-width: 160px;
+                            text-align: left;
+                        }
+
+                        .share-option {
+                            color: #333;
+                            padding: 12px 16px;
+                            text-decoration: none;
+                            display: block;
+                        }
+
+                        .share-option:hover {
+                            background-color: #f1f1f1;
+                        }
+
+                        .show-options {
+                            display: block;
+                        }
+                    </style>
+                    <!-- Three-dot button -->
+                    <div class="share-container">
+                        <button class="share-btn">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <!-- Share options -->
+                        <div class="share-options">
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                                target="_blank" class="share-option">
+                                <i class="fab fa-facebook-f"></i> Share on Facebook
+                            </a>
+                            <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
+                                target="_blank" class="share-option">
+                                <i class="fab fa-twitter"></i> Share on Twitter
+                            </a>
+                            <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                                target="_blank" class="share-option">
+                                <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                            </a>
+                            <span href="" class="share-option copy">
+                                <i class="fa fa-link"></i> Copy
+                                <input type="text" hidden
+                                    value="localhost/tutorial-test/My/post.php?category_id=<?php echo $category_id; ?>&&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>"
+                                    id="copyLinkInput" readonly>
+
+                            </span>
+                        </div>
                     </div>
 
 
-                    <div class="comments">
-                        <h3>Comments (<?php echo $total_comments; ?>) </h3>
-                        <?php if (isset($_SESSION['username'])): ?>
-                            <form method="POST">
-                                <div class="form-group">
-                                    <textarea name="comment" class="form-control" rows="3" placeholder="Leave a comment..."><?php if (isset($_GET['edit_comment_id'])) {
-                                        echo htmlspecialchars($comments[array_search((int) $_GET['edit_comment_id'], array_column($comments, 'id'))]['comment']);
-                                    } ?></textarea>
+                    <script>
+                        document.querySelector('.share-btn').addEventListener('click', function () {
+                            const shareOptions = document.querySelector('.share-options');
+                            shareOptions.classList.toggle('show-options');
+                        });
+
+                        window.addEventListener('click', function (event) {
+                            if (!event.target.matches('.share-btn')) {
+                                const shareOptions = document.querySelector('.share-options');
+                                if (shareOptions.classList.contains('show-options')) {
+                                    shareOptions.classList.remove('show-options');
+                                }
+                            }
+                        });
+
+
+                        document.querySelector('.copy').addEventListener('click', function () {
+                            const copyLinkInput = document.getElementById('copyLinkInput');
+                            // copyLinkInput.
+                            // copyLinkInput.setSelectionRange(0, 99999);
+                            // document.execCommand('copy');
+                            // alert('Link copied to clipboard', copyLinkInput.value);
+
+                            console.log(copyLinkInput.value);
+
+                            let copyText = copyLinkInput.value;
+
+                            navigator.clipboard.writeText(copyText).then(function () {
+                                alert('Link copied to clipboard', copyText);
+                            }, function (err) {
+                                console.error('Could not copy text: ', err);
+                            });
+                        });
+
+                    </script>
+                    <!--  -->
+
+
+                    <div class="modal fade" id="editCommentModal" tabindex="-1" aria-labelledby="editCommentModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editCommentModalLabel">Edit Comment</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
                                 </div>
-                                <!-- reCAPTCHA widget -->
-                                <div class="g-recaptcha" data-sitekey="your-site-key"></div>
-
-                                <button type="submit"
-                                    class="btn btn-primary mt-2"><?php echo isset($_GET['edit_comment_id']) ? 'Update Comment' : 'Post Comment'; ?></button>
-                            </form>
-
-                            <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-                        <?php else: ?>
-                            <p>Please <a href="login.php">login</a> to post comments.</p>
-                        <?php endif; ?>
-                        <ul class="list-group mt-3">
-                            <!-- if comments more than 5 add load more  -->
-
-
-
-
-                            <?php foreach ($comments as $comment): ?>
-
-                                <li class=" list-group-item">
-                                    <strong><?php echo htmlspecialchars($comment['username']); ?></strong>
-
-
-                                    <p><?php echo nl2br(htmlspecialchars($comment['comment'])); ?></p>
-                                    <small><?php echo htmlspecialchars(date('m/d/Y', strtotime($comment['created_at']))); ?></small>
-
-                                    <?php if ($comment['user_id'] == isset($_SESSION['user_id'])): ?>
-                                        <a href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&edit_comment_id=<?php echo $comment['id']; ?>"
-                                            class="btn btn-sm btn-outline-secondary">Edit</a>
-                                        <a href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&delete_comment_id=<?php echo $comment['id']; ?>"
-                                            class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('Are you sure you want to delete this comment?');">Delete</a>
-                                    <?php endif; ?>
-                                </li>
-
-                            <?php endforeach; ?>
-
-                        </ul>
+                                <div class="modal-body">
+                                    <form id="editCommentForm">
+                                        <input type="hidden" name="comment_id" id="comment_id">
+                                        <div class="mb-3">
+                                            <label for="comment_text" class="form-label">Comment</label>
+                                            <textarea class="form-control" id="comment_text" name="comment_text"
+                                                rows="3"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Save changes</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
 
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination mt-3">
-                            <?php if ($page > 1): ?>
-                                <li class="page-item">
-                                    <a class="page-link"
-                                        href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&page=<?php echo $page - 1; ?>"
-                                        aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                                <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                                    <a class="page-link"
-                                        href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&page=<?php echo $i; ?>">
-                                        <?php echo $i; ?>
-                                    </a>
-                                </li>
-                            <?php endfor; ?>
-                            <?php if ($page < $total_pages): ?>
-                                <li class="page-item">
-                                    <a class="page-link"
-                                        href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>&page=<?php echo $page + 1; ?>"
-                                        aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-                        </ul>
-                    </nav>
+                    <form id="comment-form">
+                        <?php if (isset($_SESSION['user_id'])): ?>
+                            <h3>Add Comment</h3>
 
-                <?php endif; ?>
-            </div>
+                            <input type="hidden" name="post_id" id="post-id" value="<?php echo $post_id; ?>">
+                            <!-- Replace with actual post ID -->
+                            <div class="form-group">
+                                <textarea id="comment-text" name="comment" class="form-control" rows="3"
+                                    placeholder="Leave a comment..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+
+                        <?php else: ?>
+                            <p>
+                                please <a href="login.php">login</a> to post a comment
+                            </p>
+
+                        <?php endif; ?>
+                    </form>
+
+
+
+                    <script>
+                        console.log(<?php echo json_encode($_SESSION['user_id']); ?>);
+                    </script>
+
+                    <!-- Comments -->
+                    <div class="comments">
+                        <h3 class="comment-count">Comments</h3>
+                        <div id="comments-list"></div>
+                        <div id="pagination"></div>
+                    </div>
+                    <script>
+                        const postId = <?php echo json_encode($post_id); ?>;
+                        const commentsList = document.getElementById('comments-list');
+                        const pagination = document.getElementById('pagination');
+                        let commentCount = document.querySelector('.comment-count')
+                        let currentPage = 1;
+
+
+                        // Fetch comments on page load
+                        function fetchComments(page) {
+                            fetch(`utils/fetch_comments.php?post_id=${postId}&page=${page}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    commentCount.textContent = `Comments (${data.total_comments})`;
+
+                                    // Clear existing comments
+                                    commentsList.innerHTML = '';
+
+                                    // Display comments
+                                    data.comments.forEach(comment => {
+                                        const commentElement = document.createElement('li');
+                                        commentElement.className = 'list-group-item';
+                                        commentElement.setAttribute('data-comment-id', comment.id);
+                                        console.log(comment);
+                                        commentElement.innerHTML = `
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <strong>${comment.username}</strong>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <p>${comment.comment}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     `;
+
+                                        // Only show edit and delete buttons if the user is logged in and is the owner of the comment
+                                        <?php if (isset($_SESSION['username'])): ?>
+                                            if (comment.username === '<?php echo $_SESSION['username']; ?>') {
+
+                                                commentElement.innerHTML += `
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   data-bs-target="#editCommentModal" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data-comment-id="${comment.id}" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data-comment-text="${comment.comment}">Edit</a>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <a href="#" class="btn btn-sm btn-outline-danger" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data-comment-id="${comment.id}">Delete</a>`;
+                                            }
+
+                                        <?php endif; ?>
+
+                                        commentsList.appendChild(commentElement);
+                                    });
+
+                                    // Setup pagination
+                                    pagination.innerHTML = '';
+                                    const ul = document.createElement('ul');
+                                    ul.className = 'pagination mt-3';
+
+                                    // Previous Page
+                                    if (page > 1) {
+                                        const prevItem = document.createElement('li');
+                                        prevItem.className = 'page-item';
+                                        const prevLink = document.createElement('a');
+                                        prevLink.className = 'page-link';
+                                        prevLink.href = '#';
+                                        prevLink.setAttribute('aria-label', 'Previous');
+                                        prevLink.innerHTML = `<span aria-hidden="true">&laquo;</span>`;
+                                        prevLink.addEventListener('click', (e) => {
+                                            e.preventDefault();
+                                            fetchComments(page - 1);
+                                        });
+                                        prevItem.appendChild(prevLink);
+                                        ul.appendChild(prevItem);
+                                    }
+
+                                    // Page Numbers
+                                    for (let i = 1; i <= data.total_pages; i++) {
+                                        const pageItem = document.createElement('li');
+                                        pageItem.className = `page-item ${i === page ? 'active' : ''}`;
+                                        const pageLink = document.createElement('a');
+                                        pageLink.className = 'page-link';
+                                        pageLink.href = '#';
+                                        pageLink.textContent = i;
+                                        pageLink.addEventListener('click', (e) => {
+                                            e.preventDefault();
+                                            fetchComments(i);
+                                        });
+                                        pageItem.appendChild(pageLink);
+                                        ul.appendChild(pageItem);
+                                    }
+
+                                    // Next Page
+                                    if (page < data.total_pages) {
+                                        const nextItem = document.createElement('li');
+                                        nextItem.className = 'page-item';
+                                        const nextLink = document.createElement('a');
+                                        nextLink.className = 'page-link';
+                                        nextLink.href = '#';
+                                        nextLink.setAttribute('aria-label', 'Next');
+                                        nextLink.innerHTML = `<span aria-hidden="true">&raquo;</span>`;
+                                        nextLink.addEventListener('click', (e) => {
+                                            e.preventDefault();
+                                            fetchComments(page + 1);
+                                        });
+                                        nextItem.appendChild(nextLink);
+                                        ul.appendChild(nextItem);
+                                    }
+
+                                    pagination.appendChild(ul);
+                                })
+                                .catch(error => console.error('Error fetching comments:', error));
+                        }
+
+                        // Add event listener to comment form
+                        document.getElementById('comment-form').addEventListener('submit', function (event) {
+                            event.preventDefault();
+
+                            var formData = new FormData(this);
+
+                            fetch('utils/process_comment.php', {
+                                method: 'POST',
+                                body: formData
+                            }).then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert(data.message);
+                                        fetchComments(currentPage);
+                                        document.getElementById('comment-text').value = '';
+                                    } else {
+                                        alert(data.message);
+                                    }
+                                })
+                                .catch(error => console.error('Error:', error));
+                        });
+
+                        // Edit comment
+                        var editCommentModal = document.getElementById('editCommentModal');
+
+                        editCommentModal.addEventListener('show.bs.modal', function (event) {
+                            var button = event.relatedTarget;
+                            var commentId = button.getAttribute('data-comment-id');
+                            var commentText = button.getAttribute('data-comment-text');
+
+                            var modalCommentId = editCommentModal.querySelector('#comment_id');
+                            var modalCommentText = editCommentModal.querySelector('#comment_text');
+
+                            modalCommentId.value = commentId;
+                            modalCommentText.value = commentText;
+                        });
+
+                        document.getElementById('editCommentForm').addEventListener('submit', function (e) {
+                            e.preventDefault();
+                            var formData = new FormData(this);
+
+                            fetch('utils/edit_comment.php', {
+                                method: 'POST',
+                                body: formData
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('Comment updated successfully');
+                                        fetchComments(currentPage);
+                                        bootstrap.Modal.getInstance(editCommentModal).hide();
+                                    } else {
+                                        alert('Error updating comment: ' + data.message);
+                                    }
+                                })
+                                .catch(error => console.error('Error:', error));
+                        });
+
+                        // Delete comment
+                        function deleteComment(commentId) {
+                            event.preventDefault();
+                            if (confirm('Are you sure you want to delete this comment?')) {
+                                fetch('utils/delete_comment.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded'
+                                    },
+                                    body: `id=${commentId}`
+                                })
+                                    .then(response => response.text())
+                                    .then(result => {
+                                        if (result.trim() === "success") {
+                                            alert("Comment deleted successfully.");
+                                            fetchComments(currentPage);
+                                        } else {
+                                            alert("Error deleting comment: " + result);
+                                        }
+                                    })
+                                    .catch(error => console.error('Error deleting comment:', error));
+                            }
+                        }
+
+                        // Event delegation for dynamically added delete buttons
+                        commentsList.addEventListener('click', function (event) {
+                            if (event.target && event.target.matches('a.btn-outline-danger')) {
+                                const commentId = event.target.getAttribute('data-comment-id');
+                                deleteComment(commentId);
+                            }
+                        });
+
+                        fetchComments(currentPage); // Initial load
+                    </script>
+
+                </div>
+            <?php else: ?>
+                <p>No post found.</p>
+            <?php endif; ?>
+
         </div>
     </div>
 

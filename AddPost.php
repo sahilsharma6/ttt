@@ -25,11 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $category_id = $_POST['category_id'];
         $subcategory_id = $_POST['subcategory_id'];
         $views = $_POST['views'];
+        $created_by = $_SESSION['username'];
 
         if (!empty($title) && !empty($content) && !empty($category_id) && !empty($subcategory_id)) {
             // Prepare an insert statement
-            $stmt = mysqli_prepare($connection, "INSERT INTO posts (title, content, category_id, subcategory_id, views) VALUES (?, ?, ?, ?, ?)");
-            mysqli_stmt_bind_param($stmt, "ssiii", $title, $content, $category_id, $subcategory_id, $views);
+            $stmt = mysqli_prepare($connection, "INSERT INTO posts (title, content, category_id, subcategory_id, created_by, views) VALUES (?, ?, ?, ?, ?, ?)");
+            mysqli_stmt_bind_param($stmt, "ssiisi", $title, $content, $category_id, $subcategory_id, $created_by, $views);
 
             if (mysqli_stmt_execute($stmt)) {
                 $success = "Post added successfully!";
@@ -117,6 +118,7 @@ mysqli_close($connection);
             </div>
             <button type="submit" class="btn btn-primary" name="add_post">Add Post</button>
         </form>
+        <?php echo $_SESSION['username']; ?>
     </div>
 
     <!-- Include TinyMCE script -->
