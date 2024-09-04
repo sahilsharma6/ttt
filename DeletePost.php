@@ -13,7 +13,7 @@ $stmt = mysqli_prepare($connection, "DELETE FROM posts WHERE id = ?");
 mysqli_stmt_bind_param($stmt, "i", $post_id);
 
 if (mysqli_stmt_execute($stmt)) {
-    header('Location: AllPost.php');
+    header('Location: copyallp.php');
     exit();
 } else {
     echo "Delete failed.";

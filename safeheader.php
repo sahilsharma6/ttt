@@ -50,44 +50,89 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
         <a class="navbar-brand" href="./check.php">
             <img src="uploads/logo.png" height="80" alt="logo">
         </a>
-        <form class="d-flex" method="POST" action="search.php" role="search" style="margin-right: 100px">
+        <form class="d-flex" method="POST" action="search.php" role="search" class="search-form">
             <!-- <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search" /> -->
-            <div class="d-flex search border p-2">
-                <input class="form-control me-2 " type="search" name="q" placeholder="Search" aria-label="Search" />
-                <button class="btn btn-outline-dark " type="submit">
+            <div class="d-none search d-md-flex  p-2 ">
+                <input class="form-contro w-100 p-2 border " type="search" name="q"
+                    placeholder="Search tutorials, courses and ebooks..." aria-label="Search" />
+                <button class="btn btn-outline-dark " type="submit" style="border-radius: 0px 5px 5px 0px; ;">
                     <i class="fas fa-search"></i>
                 </button>
             </div>
 
             <!-- <button class="btn btn-outline-success" type="submit">Search</button> -->
         </form>
-        <div id="google_translate_element"></div>
 
-        <script type="text/javascript">
-            function googleTranslateElementInit() {
-                new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
-            }
-        </script>
 
-        <script type="text/javascript"
-            src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-        <div class="position-absolute login">
-            <?php if ($is_logged_in): ?>
-                <!-- <span> <?php echo $username; ?></span> -->
-                <a href="logout.php" style="text-decoration: none;">logout</a>
+        <div class="position-absolute login  d-flex align-items-center justify-content-center d-one "
+            style="cursor:pointer; ">
+            <div>
+                <div id="google_translate_element" class="" style="
+                margin-left: 200px;
+                display:none;
+                transition: 1s ease-in-out;
+                "></div>
 
-            <?php else: ?>
-                <a href="login.php" style="text-decoration: none;">login</a>
-            <?php endif; ?>
+                <script type="text/javascript">
+                    function googleTranslateElementInit() {
+                        new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
+                    }
+                </script>
+
+                <script type="text/javascript"
+                    src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+            </div>
+            <div class="mx-4">
+                <i class="fa-solid fa-globe"></i>
+            </div>
+
+            <script>
+                const faGlobe = document.querySelector('.fa-globe');
+                faGlobe.addEventListener('click', () => {
+                    const googleTranslateElement = document.querySelector('#google_translate_element');
+                    googleTranslateElement.style.display = googleTranslateElement.style.display === 'none' ? 'block' : 'none';
+                })
+            </script>
+
+            <div class="pt- cursor-pointer" style="'cursor:pointer">
+
+                <i class="fa-solid fa-user "></i>
+                <?php if ($is_logged_in): ?>
+                    <!-- <span> <?php echo $username; ?></span> -->
+                    <a href="logout.php" style="text-decoration: none;">
+                        <p class="" style="margin-left: -10px"> <?php echo $username; ?> </p>
+
+                    </a>
+
+                <?php else: ?>
+                    <a href="login.php" style="text-decoration: none;">Sign in</a>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </header>
 
+<section class="d-md-none d-block">
+    <div class="container-fluid border">
+        <form class="d-flex" method="POST" action="search.php" role="search" class="w-100 ">
+            <!-- <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search" /> -->
+            <div class="d-flex w-100   p-2 m-0 " style="background-color: ">
+                <input class="form-contol w-100 px-1 border " style="font-size: 14px" type="search" name="q"
+                    placeholder="Search tutorials, courses and ebooks..." aria-label="Serch" />
+                <button class="btn btn-outline-dark " type="submit" style="border-radius: 0px 5px 5px 0px; ;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- <button class="btn btn-outline-success" type="submit">Search</button> -->
+        </form>
+    </div>
+</section>
 
 
 <?php if ($current_category !== null): ?>
-    <nav class="mynav">
+    <nav class=" mynav">
         <!-- <h1><?php echo htmlspecialchars($current_category['category_name']); ?> Navigation Links</h1> -->
         <ul>
             <?php if (!empty($navlinks)): ?>
@@ -154,4 +199,6 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
             <?php endif; ?>
         </ul>
     </nav>
+
+
 <?php endif; ?>

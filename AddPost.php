@@ -25,12 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $category_id = $_POST['category_id'];
         $subcategory_id = $_POST['subcategory_id'];
         $views = $_POST['views'];
+        $tags = $_POST['tags'];
         $created_by = $_SESSION['username'];
 
         if (!empty($title) && !empty($content) && !empty($category_id) && !empty($subcategory_id)) {
             // Prepare an insert statement
-            $stmt = mysqli_prepare($connection, "INSERT INTO posts (title, content, category_id, subcategory_id, created_by, views) VALUES (?, ?, ?, ?, ?, ?)");
-            mysqli_stmt_bind_param($stmt, "ssiisi", $title, $content, $category_id, $subcategory_id, $created_by, $views);
+            $stmt = mysqli_prepare($connection, "INSERT INTO posts (title, content, category_id, subcategory_id, created_by, views, tags) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            mysqli_stmt_bind_param($stmt, "ssiisis", $title, $content, $category_id, $subcategory_id, $created_by, $views, $tags);
 
             if (mysqli_stmt_execute($stmt)) {
                 $success = "Post added successfully!";
@@ -116,9 +117,18 @@ mysqli_close($connection);
                 <label for="views" class="form-label">Views</label>
                 <input type="number" class="form-control" id="views" name="views" required>
             </div>
+
+
+
+            <div class="mb-3">
+                <label for="tags" class="form-label">Add tags</label>
+                <input type="text" class="form-control" id="tags" name="tags">
+            </div>
+
             <button type="submit" class="btn btn-primary" name="add_post">Add Post</button>
+
         </form>
-        <?php echo $_SESSION['username']; ?>
+        <!-- <?php echo $_SESSION['username']; ?> -->
     </div>
 
     <!-- Include TinyMCE script -->

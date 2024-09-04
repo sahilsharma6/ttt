@@ -111,6 +111,9 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
 </head>
 
 <body>
+
+    <?php include_once 'features/toast.html'; ?>
+
     <?php include_once 'sidebar.php'; ?>
     <div class="dash-content">
         <h1>Manage Posts</h1>
@@ -161,8 +164,8 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                 <th>Content</th>
                 <th>Category</th>
                 <th>Status</th>
-                <th>created_by</th>
-                <th>Action</th>
+                <th>Created By</th>
+                <th>Actions</th>
             </tr>
             <?php while ($row = mysqli_fetch_assoc($result)): ?>
                 <tr>
@@ -186,44 +189,47 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
 
                     <!-- Approve/Reject button -->
                     <?php if ($_SESSION['role'] === 'SuperAdmin'): ?>
-                        <!-- <form> -->
                             <input type="checkbox" class="status-toggle" data-id="<?php echo $row['id']; ?>"
-                            <?php if ($row['status'] === 'approved') echo 'checked'; ?> >
-                        <!-- </form> -->
+                            <?php if ($row['status'] == 'approved') echo 'checked'; ?> >
+                            <span class="status-label"><?php echo $row['status'];?></span>
 
-                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                        <script>
+                            <script>
+                                 document.addEventListener('DOMContentLoaded', function() {
+                                 let statusToggles = document.querySelectorAll('.status-toggle');
 
-document.querySelectorAll('.status-toggle').forEach(function (checkbox) {
-        checkbox.addEventListener('change', function () {
-            const postId = this.getAttribute('data-id');
-            // const postId =<?php echo $row['id']; ?>
-            const status = this.checked ? 'approved' : 'pending';
-            console.log(postId, status);    
-            fetch('utils/toggle_post_status.php?id=' + postId + '&status=' + status + '', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                                 statusToggles.forEach(function(toggle) {
+                                    //  toggle.removeEventListener('change', handleToggleChange);
+                                     toggle.addEventListener('change', handleToggleChange);
+                                 });
+                             });    
 
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('Status updated successfully');
-                } else {
-                    console.error('Failed to update status');
-                    console.log(data);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-    });
-                        </script>
+                             function handleToggleChange() {
+                                 let postId = this.getAttribute('data-id');
+                                 let status = this.checked ? 'pending' : 'approved';
+                                //  let statusLabel = document.querySelectorAll('.status-label');
+                                //  let newStatus = this.checked ? 'approved' : 'pending';
+                                //  console.log(postId, status);
+
+
+                                 fetch('utils/toggle_post_status.php', {
+                                     method: 'POST',
+                                     headers: {
+                                         'Content-Type': 'application/x-www-form-urlencoded'
+                                     },
+                                     body: `post_id=${postId}&status=${status}`
+                                 })
+                                 .then(response => response.json())
+                                 .then(data => {
+                                     console.log('Success:', data);
+                                     if (data.success) {
+                                         window.location.reload();
+                                     }
+                                 })
+                                 .catch(error => console.error('Error:', error));
+                             }
+
+</script>
                     <?php endif; ?>
-                        <span><?php echo $row['status'];?></span>
                     </td>
                     <td>
                         <?php echo htmlspecialchars($row['created_by']); ?>
@@ -264,6 +270,8 @@ document.querySelectorAll('.status-toggle').forEach(function (checkbox) {
             <?php endif; ?>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </body>
 
 </html>

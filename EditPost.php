@@ -49,11 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['id'])) {
     $category_id = $_POST['category_id'];
     $subcategory_id = $_POST['subcategory_id'];
     $views = $_POST['views'];
+    $tags = $_POST['tags'];
 
     if (!empty($title) && !empty($content) && !empty($category_id) && !empty($subcategory_id)) {
         // Prepare an update statement
-        $stmt = mysqli_prepare($connection, "UPDATE posts SET title = ?, content = ?, category_id = ?, subcategory_id = ?, views = ? WHERE id = ?");
-        mysqli_stmt_bind_param($stmt, "ssiiii", $title, $content, $category_id, $subcategory_id, $views, $post_id);
+        $stmt = mysqli_prepare($connection, "UPDATE posts SET title = ?, content = ?, category_id = ?, subcategory_id = ?, views = ?, tags = ? WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, "ssiiisi", $title, $content, $category_id, $subcategory_id, $views, $tags, $post_id);
 
         if (mysqli_stmt_execute($stmt)) {
             $success = "Post updated successfully!";
@@ -133,6 +134,12 @@ mysqli_close($connection);
                 <label for="views" class="form-label">views</label>
                 <input type="number" class="form-control" id="views" name="views"
                     value="<?php echo htmlspecialchars($post['views'] ?? ''); ?>" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="tags" class="form-label">Update tags</label>
+                <input type="text" class="form-control" id="tags" name="tags"
+                    value="<?php echo htmlspecialchars($post['tags'] ?? ''); ?>">
             </div>
             <button type="submit" class="btn btn-primary" name="update_post">Update Post</button>
         </form>

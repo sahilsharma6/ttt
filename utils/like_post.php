@@ -54,7 +54,7 @@ if ($post_id && $user_id) {
     $post = mysqli_fetch_assoc($result);
     mysqli_stmt_close($stmt);
 
-    if ($post) {
+    if ($post && !$like) {
         $response['success'] = true;
         $response['like_count'] = $post['likes'];
     }

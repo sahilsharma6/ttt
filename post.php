@@ -60,7 +60,7 @@ if ($post_id) {
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
 
-    $post_query = "SELECT id, title, content, views,likes,created_at,status FROM posts WHERE id = ? AND status='approved'";
+    $post_query = "SELECT id, title, content, views,tags,likes,created_at,status FROM posts WHERE id = ? AND status='approved'";
     $stmt = mysqli_prepare($connection, $post_query);
     mysqli_stmt_bind_param($stmt, "i", $post_id);
     mysqli_stmt_execute($stmt);
@@ -295,13 +295,59 @@ mysqli_close($connection);
         }
 
         .language-javascript {
-            background-color: #f8f9fa;
+            background-color: #c6cacd;
+            ;
             padding: 10px;
             border-radius: 5px;
             margin-bottom: 10px;
             font-size: 14px;
             line-height: 1.5;
             color: #333;
+        }
+
+        .language-javascript code {
+            color: #000;
+        }
+
+        .menu-btn {
+            display: none;
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 20px;
+            /* bottom: 0; */
+            z-index: 99999999999;
+            /* right: 100%; */
+        }
+
+        .menu-ham {
+            /* display: none; */
+        }
+
+        .menu-close {
+            display: none;
+            margin-top: 5px;
+        }
+
+        .sidebar.active {
+            right: 2%;
+        }
+
+        @media screen and (max-width: 767.5px) {
+            .sidebar {
+                /* display: none; */
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                z-index: 999;
+                right: 100%;
+                transition: right 0.3s ease-in-out;
+            }
+
+
+            .menu-btn {
+                display: block;
+            }
         }
     </style>
 
@@ -311,6 +357,12 @@ mysqli_close($connection);
 <body>
 
     <?php include 'safeheader.php'; ?>
+    <div class="menu-btn">
+        <i class="fas fa-bars menu-ham"></i>
+        <i class="fas fa-close menu-close"></i>
+    </div>
+
+
 
     <div class="container-fluid">
         <div class="row">
@@ -349,121 +401,24 @@ mysqli_close($connection);
             </div>
 
 
+            <script>
+                const menuBtn = document.querySelector('.menu-btn');
+                const sidebar = document.querySelector('.sidebar');
+                const menuHam = document.querySelector('.menu-ham');
+                const menuClose = document.querySelector('.menu-close');
+
+                menuBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('active');
+                    menuHam.classList.toggle('d-none');
+                    menuClose.classList.toggle('d-block');
+                    console.log(sidebar);
+                    console.log(7);
+                    // menuClose.classList.toggle('active');
+                })
+            </script>
+
             <div class="col-md-9 main-content">
                 <?php if ($post_id): ?>
-                    <h2><?php echo htmlspecialchars($current_post['title']); ?></h2>
-                    <div class="content">
-                        <?php echo (($current_post['content'])); ?>
-                    </div>
-                    <div class="views">
-                        <p>Views: <?php echo $current_post['views']; ?></p>
-                    </div>
-
-                    <div class="prev-next-buttons">
-                        <?php if ($current_post_index === 0 && $prev_subcategory_last_post_id): ?>
-                            <a class="btn-nav"
-                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $prev_subcategory_id; ?>&post_id=<?php echo $prev_subcategory_last_post_id; ?>">Previous</a>
-                        <?php elseif ($prev_post_id): ?>
-                            <a class="btn-nav"
-                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $prev_post_id; ?>">Previous</a>
-                        <?php endif; ?>
-
-                        <?php if ($next_post_id): ?>
-                            <a class="btn-nav"
-                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $next_post_id; ?>">Next</a>
-                        <?php elseif ($next_subcategory_first_post_id): ?>
-                            <a class="btn-nav"
-                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $next_subcategory_id; ?>&post_id=<?php echo $next_subcategory_first_post_id; ?>">Next</a>
-                        <?php endif; ?>
-                    </div>
-
-
-                    <!-- ------------------likes------------------ -->
-                    <div class="like" role="button">
-                        <i class="fa-regular fa-thumbs-up" id="like-button"></i>
-                        <span id="like-count"> </span>
-                    </div>
-
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            const likeButton = document.getElementById('like-button');
-                            const likeCount = document.getElementById('like-count');
-                            let postId = <?php echo json_encode($post_id); ?>;
-
-
-                            function fetchLikeCount() {
-
-                                fetch('utils/fetch_like_count.php?post_id=' + postId + '', {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        likeCount.textContent = `Likes ${data.like_count}`;
-                                        console.log(data);
-                                    })
-                                    .catch(error => console.error('Error:', error));
-                            }
-
-                            likeButton.addEventListener('click', function () {
-                                fetch('utils/like_post.php', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/x-www-form-urlencoded'
-                                    },
-                                    body: `post_id=${postId}`
-                                })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.success) {
-                                            // likeButton.classList.toggle('fa-solid');
-                                            fetchLikeCount();
-                                        } else {
-                                            console.error('Error liking/unliking post');
-                                        }
-                                    })
-                                    .catch(error => console.error('Error:', error));
-                            });
-
-                            fetchLikeCount();
-                        });
-                    </script>
-
-
-
-                    <!-- ------------------------------------- -->
-
-
-                    <!-- share -->
-                    <!-- <div class="share-buttons">
-                        <h4>Share this post:</h4>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
-                            target="_blank" class="btn btn-primary">
-                            <i class="fab fa-facebook-f"></i> Share on Facebook
-                        </a>
-
-                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
-                            target="_blank" class="btn btn-info">
-                            <i class="fab fa-twitter"></i> Share on Twitter
-                        </a>
-
-                        <a href="http"></a>
-
-                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
-                            target="_blank" class="btn btn-success">
-                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
-                        </a>
-                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
-                            target="_blank" class="btn btn-success">
-                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
-                        </a>
-
-                    </div> -->
-
-
-                    <!-- Three-dot button -->
 
                     <style>
                         .share-container {
@@ -508,35 +463,113 @@ mysqli_close($connection);
                             display: block;
                         }
                     </style>
-                    <!-- Three-dot button -->
-                    <div class="share-container">
-                        <button class="share-btn">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <!-- Share options -->
-                        <div class="share-options">
-                            <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
-                                target="_blank" class="share-option">
-                                <i class="fab fa-facebook-f"></i> Share on Facebook
-                            </a>
-                            <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
-                                target="_blank" class="share-option">
-                                <i class="fab fa-twitter"></i> Share on Twitter
-                            </a>
-                            <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
-                                target="_blank" class="share-option">
-                                <i class="fab fa-whatsapp"></i> Share on WhatsApp
-                            </a>
-                            <span href="" class="share-option copy">
-                                <i class="fa fa-link"></i> Copy
-                                <input type="text" hidden
-                                    value="localhost/tutorial-test/My/post.php?category_id=<?php echo $category_id; ?>&&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>"
-                                    id="copyLinkInput" readonly>
+                    <style>
+                        .share-container {
+                            position: relative;
+                            display: inline-block;
+                        }
 
-                            </span>
+                        .share-btn {
+                            /* background-color: #f8f9fa; */
+                            background: none;
+                            /* border: none; */
+                            /* width: 50px; */
+                            /* border-radius: 50%; */
+                            /* padding: 8px; */
+                            /* display: inline; */
+                            cursor: pointer;
+                            font-size: 1.2rem;
+                            transition: background-color 0.3s, transform 0.3s;
+                        }
+
+                        .share-btn:hover {
+                            /* background-color: #e9ecef; */
+                            transform: scale(1.1);
+                        }
+
+                        .share-options {
+                            display: none;
+                            position: absolute;
+                            top: 100%;
+                            right: 0;
+                            background-color: #fff;
+                            border: 1px solid #ddd;
+                            border-radius: 40px;
+                            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+                            z-index: 1;
+                            min-width: 160px;
+                            text-align: left;
+                            opacity: 0;
+                            visibility: hidden;
+                            transition: opacity 0.3s, visibility 0.3s;
+                        }
+
+                        .share-options.show-options {
+                            display: block;
+                            opacity: 1;
+                            visibility: visible;
+                        }
+
+                        .share-option {
+                            color: #333;
+                            padding: 12px 16px;
+                            text-decoration: none;
+                            display: block;
+                            transition: background-color 0.3s, color 0.3s;
+                        }
+
+                        .share-option:hover {
+                            background-color: #f1f1f1;
+                            color: #007bff;
+                        }
+
+                        .copy {
+                            cursor: pointer;
+                        }
+                    </style>
+
+
+                    <!-- Three-dot button -->
+                    <div class="d-flex align-items-center justify-content-between  pt-3">
+                        <div>
+                            <?php
+                            $date = new DateTime($current_post['created_at']);
+                            // echo $date->format('d M Y'); // Outputs: 24 Aug 2024
+                            ?>
+                        </div>
+                        <div class="share-container">
+                            <button class="share-btn">
+                                <!-- <i class="fas fa-ellipsis-v"></i> -->
+                                <!-- <span>
+                                    <i class="fa-regular fa-share-from-square"></i>
+                                </span> -->
+                                <span class="mx-3"><i class="fa-regular fa-share-from-square"></i> Share</span>
+
+
+                            </button>
+                            <!-- Share options -->
+                            <div class="share-options">
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                                    target="_blank" class="share-option">
+                                    <i class="fab fa-facebook-f"></i> Share on Facebook
+                                </a>
+                                <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
+                                    target="_blank" class="share-option">
+                                    <i class="fab fa-twitter"></i> Share on Twitter
+                                </a>
+                                <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                                    target="_blank" class="share-option">
+                                    <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                                </a>
+                                <span class="share-option copy">
+                                    <i class="fa fa-link"></i> Copy Link
+                                    <input type="text" hidden
+                                        value="https://yourwebsite.com/post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>"
+                                        id="copyLinkInput" readonly>
+                                </span>
+                            </div>
                         </div>
                     </div>
-
 
                     <script>
                         document.querySelector('.share-btn').addEventListener('click', function () {
@@ -544,36 +577,184 @@ mysqli_close($connection);
                             shareOptions.classList.toggle('show-options');
                         });
 
-                        window.addEventListener('click', function (event) {
-                            if (!event.target.matches('.share-btn')) {
-                                const shareOptions = document.querySelector('.share-options');
-                                if (shareOptions.classList.contains('show-options')) {
-                                    shareOptions.classList.remove('show-options');
-                                }
-                            }
-                        });
-
+                        // window.addEventListener('click', function (event) {
+                        //     if (!event.target.matches('.share-btn')) {
+                        //         const shareOptions = document.querySelector('.share-options');
+                        //         if (shareOptions.classList.contains('show-options')) {
+                        //             shareOptions.classList.remove('show-options');
+                        //         }
+                        //     }
+                        // });
 
                         document.querySelector('.copy').addEventListener('click', function () {
                             const copyLinkInput = document.getElementById('copyLinkInput');
-                            // copyLinkInput.
-                            // copyLinkInput.setSelectionRange(0, 99999);
-                            // document.execCommand('copy');
-                            // alert('Link copied to clipboard', copyLinkInput.value);
-
-                            console.log(copyLinkInput.value);
-
                             let copyText = copyLinkInput.value;
 
                             navigator.clipboard.writeText(copyText).then(function () {
-                                alert('Link copied to clipboard', copyText);
+                                showToast('success', 'Link copied to clipboard!');
+                                // alert('Link copied to clipboard!');
                             }, function (err) {
                                 console.error('Could not copy text: ', err);
                             });
                         });
-
                     </script>
                     <!--  -->
+
+
+                    <h2 class="mt-3"><?php echo htmlspecialchars($current_post['title']); ?></h2>
+                    <div class="content">
+                        <?php echo (($current_post['content'])); ?>
+                    </div>
+
+
+                    <div class="prev-next-buttons">
+                        <?php if ($current_post_index === 0 && $prev_subcategory_last_post_id): ?>
+                            <a class="btn-nav"
+                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $prev_subcategory_id; ?>&post_id=<?php echo $prev_subcategory_last_post_id; ?>">
+                                <i class="fa-solid fa-arrow-left mx-1"></i> Previous</a>
+                        <?php elseif ($prev_post_id): ?>
+                            <a class="btn-nav"
+                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $prev_post_id; ?>">
+                                <i class="fa-solid fa-arrow-left mx-1"></i> Previous </a>
+                        <?php endif; ?>
+
+                        <?php if ($next_post_id): ?>
+                            <a class="btn-nav"
+                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $next_post_id; ?>">Next
+                                <i class="fa-solid fa-arrow-right mx-1"></i></a>
+                        <?php elseif ($next_subcategory_first_post_id): ?>
+                            <a class="btn-nav"
+                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $next_subcategory_id; ?>&post_id=<?php echo $next_subcategory_first_post_id; ?>">Next
+                                <i class="fa-solid fa-arrow-right mx-1"></i></a>
+                        <?php endif; ?>
+                    </div>
+
+
+                    <!-- ------------------likes------------------ -->
+                    <div class="d-flex justify-content-between align-items-center border-top border-bottom ">
+
+                        <div class="like" role="button">
+                            <span id="like-count"> </span>
+                            <!-- <i class="fa-regular fa-thumbs-up" id="like-button"></i> -->
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                id="like-button" aria-label="clap">
+                                <path fill-rule="evenodd"
+                                    d="M11.37.828 12 3.282l.63-2.454zM13.916 3.953l1.523-2.112-1.184-.39zM8.589 1.84l1.522 2.112-.337-2.501zM18.523 18.92c-.86.86-1.75 1.246-2.62 1.33a6 6 0 0 0 .407-.372c2.388-2.389 2.86-4.951 1.399-7.623l-.912-1.603-.79-1.672c-.26-.56-.194-.98.203-1.288a.7.7 0 0 1 .546-.132c.283.046.546.231.728.5l2.363 4.157c.976 1.624 1.141 4.237-1.324 6.702m-10.999-.438L3.37 14.328a.828.828 0 0 1 .585-1.408.83.83 0 0 1 .585.242l2.158 2.157a.365.365 0 0 0 .516-.516l-2.157-2.158-1.449-1.449a.826.826 0 0 1 1.167-1.17l3.438 3.44a.363.363 0 0 0 .516 0 .364.364 0 0 0 0-.516L5.293 9.513l-.97-.97a.826.826 0 0 1 0-1.166.84.84 0 0 1 1.167 0l.97.968 3.437 3.436a.36.36 0 0 0 .517 0 .366.366 0 0 0 0-.516L6.977 7.83a.82.82 0 0 1-.241-.584.82.82 0 0 1 .824-.826c.219 0 .43.087.584.242l5.787 5.787a.366.366 0 0 0 .587-.415l-1.117-2.363c-.26-.56-.194-.98.204-1.289a.7.7 0 0 1 .546-.132c.283.046.545.232.727.501l2.193 3.86c1.302 2.38.883 4.59-1.277 6.75-1.156 1.156-2.602 1.627-4.19 1.367-1.418-.236-2.866-1.033-4.079-2.246M10.75 5.971l2.12 2.12c-.41.502-.465 1.17-.128 1.89l.22.465-3.523-3.523a.8.8 0 0 1-.097-.368c0-.22.086-.428.241-.584a.847.847 0 0 1 1.167 0m7.355 1.705c-.31-.461-.746-.758-1.23-.837a1.44 1.44 0 0 0-1.11.275c-.312.24-.505.543-.59.881a1.74 1.74 0 0 0-.906-.465 1.47 1.47 0 0 0-.82.106l-2.182-2.182a1.56 1.56 0 0 0-2.2 0 1.54 1.54 0 0 0-.396.701 1.56 1.56 0 0 0-2.21-.01 1.55 1.55 0 0 0-.416.753c-.624-.624-1.649-.624-2.237-.037a1.557 1.557 0 0 0 0 2.2c-.239.1-.501.238-.715.453a1.56 1.56 0 0 0 0 2.2l.516.515a1.556 1.556 0 0 0-.753 2.615L7.01 19c1.32 1.319 2.909 2.189 4.475 2.449q.482.08.971.08c.85 0 1.653-.198 2.393-.579.231.033.46.054.686.054 1.266 0 2.457-.52 3.505-1.567 2.763-2.763 2.552-5.734 1.439-7.586z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Like(s)</span>
+                            <span class="mx-3"><i class="fa-regular fa-share-from-square"></i> Share</span>
+
+                        </div>
+                        <div class="views mt-3">
+                            <p> <?php echo $current_post['views']; ?> View(s)</p>
+                        </div>
+
+                    </div>
+
+
+
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            const likeButton = document.getElementById('like-button');
+                            const likeCount = document.getElementById('like-count');
+                            let postId = <?php echo json_encode($post_id); ?>;
+
+
+                            function fetchLikeCount() {
+
+                                fetch('utils/fetch_like_count.php?post_id=' + postId + '', {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        likeCount.textContent = ` ${data.like_count} `;
+                                        console.log(data);
+                                    })
+                                    .catch(error => console.error('Error:', error));
+                            }
+
+                            likeButton.addEventListener('click', function () {
+                                fetch('utils/like_post.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded'
+                                    },
+                                    body: `post_id=${postId}`
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // likeButton.classList.toggle('fa-solid');
+                                            showToast("success", "Post liked");
+                                            fetchLikeCount();
+                                        } else {
+                                            fetchLikeCount();
+                                            // showToast("error", "Please login to like");
+                                            <?php if (!isset($_SESSION['user_id'])) { ?>
+                                                showToast("error", "Please signup or login to like");
+
+                                            <?php } else {
+                                                ?>
+
+                                                showToast("error", "Post unliked");
+
+                                            <?php }
+                                            ; ?>
+
+
+                                            console.error('Error liking/unliking post');
+                                        }
+
+                                    })
+                                    .catch(error => console.error('Error:', error));
+                            });
+
+                            fetchLikeCount();
+                        });
+                    </script>
+
+                    <?php include 'features/postTags.php'; ?>
+
+
+                    <!-- ------------------------------------- -->
+
+
+                    <!-- share -->
+                    <!-- <div class="share-buttons">
+                        <h4>Share this post:</h4>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                            target="_blank" class="btn btn-primary">
+                            <i class="fab fa-facebook-f"></i> Share on Facebook
+                        </a>
+
+                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
+                            target="_blank" class="btn btn-info">
+                            <i class="fab fa-twitter"></i> Share on Twitter
+                        </a>
+
+                        <a href="http"></a>
+
+                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                            target="_blank" class="btn btn-success">
+                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                        </a>
+                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                            target="_blank" class="btn btn-success">
+                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                        </a>
+
+                    </div> -->
+
+
+                    <!-- Three-dot button -->
+
+
+
 
 
                     <div class="modal fade" id="editCommentModal" tabindex="-1" aria-labelledby="editCommentModalLabel"
@@ -600,10 +781,11 @@ mysqli_close($connection);
                         </div>
                     </div>
 
+                    <?php include "features/toast.html"; ?>
 
                     <form id="comment-form">
                         <?php if (isset($_SESSION['user_id'])): ?>
-                            <h3>Add Comment</h3>
+                            <h3 class="mt-4 mb-3">Add Comment</h3>
 
                             <input type="hidden" name="post_id" id="post-id" value="<?php echo $post_id; ?>">
                             <!-- Replace with actual post ID -->
@@ -611,10 +793,10 @@ mysqli_close($connection);
                                 <textarea id="comment-text" name="comment" class="form-control" rows="3"
                                     placeholder="Leave a comment..."></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary mt-2">Post Comment</button>
+                            <button type="submit" class="btn btn-primary mt-3">Post Comment</button>
 
                         <?php else: ?>
-                            <p>
+                            <p class="mt-4">
                                 please <a href="login.php">login</a> to post a comment
                             </p>
 
@@ -627,9 +809,10 @@ mysqli_close($connection);
                         console.log(<?php echo json_encode($_SESSION['user_id']); ?>);
                     </script>
 
+
                     <!-- Comments -->
                     <div class="comments">
-                        <h3 class="comment-count">Comments</h3>
+                        <h3 class="comment-count mt-5">Comments</h3>
                         <div id="comments-list"></div>
                         <div id="pagination"></div>
                     </div>
@@ -658,22 +841,22 @@ mysqli_close($connection);
                                         commentElement.setAttribute('data-comment-id', comment.id);
                                         console.log(comment);
                                         commentElement.innerHTML = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <strong>${comment.username}</strong>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <p>${comment.comment}</p>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <strong>${comment.username}</strong>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <p>${comment.comment}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         `;
 
                                         // Only show edit and delete buttons if the user is logged in and is the owner of the comment
                                         <?php if (isset($_SESSION['username'])): ?>
                                             if (comment.username === '<?php echo $_SESSION['username']; ?>') {
 
                                                 commentElement.innerHTML += `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   data-bs-target="#editCommentModal" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data-comment-id="${comment.id}" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data-comment-text="${comment.comment}">Edit</a>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <a href="#" class="btn btn-sm btn-outline-danger" 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 data-comment-id="${comment.id}">Delete</a>`;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           data-bs-target="#editCommentModal" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         data-comment-id="${comment.id}" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         data-comment-text="${comment.comment}">Edit</a>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <a href="#" class="btn btn-sm btn-outline-danger" 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         data-comment-id="${comment.id}">Delete</a>`;
                                             }
 
                                         <?php endif; ?>
@@ -753,11 +936,12 @@ mysqli_close($connection);
                             }).then(response => response.json())
                                 .then(data => {
                                     if (data.success) {
-                                        alert(data.message);
+                                        showToast('success', 'Comment added successfully!');
+
                                         fetchComments(currentPage);
                                         document.getElementById('comment-text').value = '';
                                     } else {
-                                        alert(data.message);
+                                        showToast('error', 'Comment can not be empty!');
                                     }
                                 })
                                 .catch(error => console.error('Error:', error));
@@ -789,7 +973,7 @@ mysqli_close($connection);
                                 .then(response => response.json())
                                 .then(data => {
                                     if (data.success) {
-                                        alert('Comment updated successfully');
+                                        showToast('success', 'Comment updated successfully!');
                                         fetchComments(currentPage);
                                         bootstrap.Modal.getInstance(editCommentModal).hide();
                                     } else {
@@ -813,7 +997,7 @@ mysqli_close($connection);
                                     .then(response => response.text())
                                     .then(result => {
                                         if (result.trim() === "success") {
-                                            alert("Comment deleted successfully.");
+                                            showToast('success', 'Comment deleted successfully!');
                                             fetchComments(currentPage);
                                         } else {
                                             alert("Error deleting comment: " + result);
@@ -842,26 +1026,53 @@ mysqli_close($connection);
         </div>
     </div>
 
+    <?php include 'features/scrollToTopBtn.html'; ?>
 
     <?php require_once 'footer.php'; ?>
 
-    <script>
-        function copyToClipboard() {
-            const codeElement = document.querySelector('.language-javascript');
-            const copyBtn = document.createElement('button');
-            copyBtn.textContent = 'Copy';
-            copyBtn.addEventListener('click', () => {
-                navigator.clipboard.writeText(codeElement.textContent);
-                copyBtn.textContent = 'Copied!';
-                setTimeout(() => {
-                    copyBtn.textContent = 'Copy';
-                }, 2000);
-            });
-            codeElement.appendChild(copyBtn);
 
+    <script>
+        function copyToClipboardCode() {
+            const codeElements = document.querySelectorAll('.language-javascript');
+
+            codeElements.forEach((codeElement) => {
+                const copyBtn = document.createElement('button');
+                const div = document.createElement('div');
+
+                div.style.position = 'absolute';
+                div.style.right = '30px';
+                copyBtn.style.border = 'none';
+                copyBtn.style.backgroundColor = 'transparent';
+
+                copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
+
+                // Append the button to the div
+                div.appendChild(copyBtn);
+
+                // Insert the div before the code element
+                codeElement.parentNode.insertBefore(div, codeElement);
+
+                // Add event listener to the copy button
+                copyBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(codeElement.textContent)
+                        .then(() => {
+                            copyBtn.textContent = 'Copied!';
+                            showToast('success', 'Copied to clipboard!');
+                            setTimeout(() => {
+                                copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy text: ', err);
+                        });
+                });
+            });
         }
-        copyToClipboard()
+
+        // Call the function to apply the changes
+        copyToClipboardCode();
     </script>
+
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
