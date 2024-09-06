@@ -84,11 +84,13 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                     src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
             </div>
             <div class="mx-4">
-                <i class="fa-solid fa-globe"></i>
+                <!-- <i class="fa-solid fa-globe"></i> -->
+                <i class="fa-solid fa-language " style="font-size:25px"></i>
             </div>
+            <span><i class="gfg-icon  gfg-icon-black-translate "></i></span>
 
             <script>
-                const faGlobe = document.querySelector('.fa-globe');
+                const faGlobe = document.querySelector('.fa-language');
                 faGlobe.addEventListener('click', () => {
                     const googleTranslateElement = document.querySelector('#google_translate_element');
                     googleTranslateElement.style.display = googleTranslateElement.style.display === 'none' ? 'block' : 'none';
@@ -162,7 +164,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                         <li class="">
                             <div class="">
 
-                                <img src="<?php echo $category['category_image']; ?>" height="20" alt="">
+                                <img src="<?php echo $category['category_image']; ?>" height="20" width="20" alt="">
                                 <span class="na">
                                     <?php echo htmlspecialchars($navlink['name']); ?>
                                 </span>
@@ -185,8 +187,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                                 <li class="">
                                     <div class="">
 
-                                        <img src="<?php echo $category['category_image']; ?>" height="20"
-                                            alt="<?php echo htmlspecialchars($category['category_name']); ?>">
+                                        <img src="<?php echo $category['category_image']; ?>" height="20" width="20">
                                         <span class="na">
                                             <?php echo htmlspecialchars($category['category_name']); ?>
                                         </span>
@@ -202,3 +203,44 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
 
 
 <?php endif; ?>
+
+<!-- 
+<nav class="mynav">
+    <ul>
+        <?php foreach ($categories as $category): ?>
+            <a href="post.php?category_id=<?php echo $category['id']; ?>">
+                <li class="">
+                    <div class="">
+                        <img src="<?php echo $category['category_image']; ?>" height="20" alt="">
+                        <span class="na">
+                            <?php echo htmlspecialchars($category['category_name']); ?>
+                        </span>
+                    </div>
+                </li>
+            </a>
+        <?php endforeach; ?>
+
+    </ul>
+</nav> -->
+
+<script>
+    window.onscroll = function () {
+        myFunction();
+    };
+
+    function myFunction() {
+        if (
+            document.body.scrollTop > 10 ||
+            document.documentElement.scrollTop > 10
+        ) {
+            // document.querySelector(".navbar").classList.add("bg-black");
+            document.querySelector(".mynav").classList.add("sticky-top");
+            document.querySelector(".mynav").style.transition = "all 0.5s ease 10s";
+        } else {
+            document.querySelector(".mynav").classList.remove("sticky-top");
+            // document.querySelector("header").classList.remove("fixed-lg-top");
+            document.querySelector(".mynav").style.transition = "";
+
+        }
+    }
+</script>

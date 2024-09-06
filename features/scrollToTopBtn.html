@@ -33,9 +33,15 @@
     transform: translateY(100px);
   }
 </style>
-<button id="scrollToTopBtn" class="scroll-to-top-btn">&#8679;</button>
+<h2>Scroll to top</h2>
+<button id="scrollToTopBtn" class="scroll-to-top-btn" title="Scroll to top">
+  &#8679;
+</button>
 
 <script>
+  //   $(function () {
+  //     $('[data-toggle="tooltip"]').tooltip();
+  //   });
   document.addEventListener("DOMContentLoaded", () => {
     const scrollToTopBtn = document.getElementById("scrollToTopBtn");
 

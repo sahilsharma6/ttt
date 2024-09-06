@@ -75,7 +75,7 @@ mysqli_close($connection);
 
 <body>
 
-    <?php include_once 'header.php'; ?>
+    <?php include_once 'safeheader.php'; ?>
 
     <div class="container-fluid">
         <div class="row">
