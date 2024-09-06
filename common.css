@@ -93,8 +93,9 @@ a {
   /* border: saddlebrown; */
   text-align: center;
   flex: 0 0 auto; /* Prevent shrinking and growing */
-  width: 100px; /* Adjust width as needed */
+  width: 100%;
   height: 100%;
+  margin-inline: 5px;
 }
 .mynav ul a li:hover {
   /* border: solid; */
@@ -117,6 +118,7 @@ a {
   text-decoration: none;
   font-family: Arial, sans-serif; /* Use a clean font */
   font-size: 14px; /* Adjust font size */
+  /* width: auto; */
 }
 
 .mynav ul a:hover {

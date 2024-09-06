@@ -45,7 +45,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
 
 
 
-<header class="bg-light py-3 position-relative ">
+<header class="bg-light py-3 position- header " style="position: ">
     <div class="container-fluid d-flex justify-content- align-items-center">
         <a class="navbar-brand" href="./check.php">
             <img src="uploads/logo.png" height="80" alt="logo">
@@ -85,7 +85,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
             </div>
             <div class="mx-4">
                 <!-- <i class="fa-solid fa-globe"></i> -->
-                <i class="fa-solid fa-language " style="font-size:25px"></i>
+                <i class="fa-solid fa-language " style="font-size:25px" title="Change Language"></i>
             </div>
             <span><i class="gfg-icon  gfg-icon-black-translate "></i></span>
 
@@ -97,20 +97,84 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                 })
             </script>
 
-            <div class="pt- cursor-pointer" style="'cursor:pointer">
 
-                <i class="fa-solid fa-user "></i>
+
+            <style>
+                .show-username {
+                    display: none;
+                    top: 48px;
+                    right: -17px;
+                    padding: 10px;
+                    border-radius: 10px;
+                    z-index: 99999999999;
+                    color: black;
+                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                }
+            </style>
+
+            <div class="pt- cursor-pointer login-btn d-flex  justify-content-center flex-column  login-btn  "
+                style="justify-content: center;">
+
+                <i class="fa-solid fa-user text-center  "></i>
                 <?php if ($is_logged_in): ?>
                     <!-- <span> <?php echo $username; ?></span> -->
-                    <a href="logout.php" style="text-decoration: none;">
-                        <p class="" style="margin-left: -10px"> <?php echo $username; ?> </p>
+                    <p class="login-username " style=""> <?php echo $username; ?> </p>
 
-                    </a>
+                    <div class="d- show-username bg-light text-bg-  position-absolute">
+                        <div class="my-2">
+                            <i class="fa-regular fa-user"></i>
+                            <span class="show-username-text">
+
+                                <?php echo $username; ?>
+                            </span>
+                        </div>
+                        <!-- <hr> -->
+                        <p class="" style="height:.1px; width:100%; background-color: #edebe6;"></p>
+                        <div>
+                            <a href="logout.php" class="text-" style="text-decoration: none; color:white;">
+                                <p class="text-" style="color:blue;">
+                                    <i class="fa-solid fa-right-from-bracket "></i>
+                                    Sign out
+                                </p>
+                            </a>
+                        </div>
+                    </div>
+
+
+
 
                 <?php else: ?>
                     <a href="login.php" style="text-decoration: none;">Sign in</a>
                 <?php endif; ?>
             </div>
+            <script>
+                const loginUsername = document.querySelector('.login-username');
+                const showUsername = document.querySelector('.show-username');
+                const showUsernameTxt = document.querySelector('.show-username-text');
+                const loginBtn = document.querySelector('.login-btn');
+                // const username = loginUsername.textContent.chartAt(0).toUpperCase() + loginUsername.textextContent.slice(1);
+                const usernameStr = loginUsername.textContent
+                console.log(usernameStr);
+                let username = usernameStr.trim('').charAt(0).toUpperCase() + usernameStr.slice(1);
+
+                loginUsername.textContent = username;
+                showUsernameTxt.textContent = username;
+
+                loginBtn.addEventListener('click', () => {
+                    showUsername.style.display = showUsername.style.display === 'none' ? 'block' : 'none';
+                })
+                // loginUsername
+
+
+                if (loginUsername.textContent.length > 10) {
+                    loginUsername.textContent = loginUsername.textContent.slice(0, 10) + '...';
+                }
+
+
+
+
+                // console.log(loginUsername.textContent.length);
+            </script>
         </div>
     </div>
 </header>
@@ -246,6 +310,9 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
 
     let lastScrollTop = 0;
 
+    const header = document.querySelector(".header");
+    // header.classList.add("b");
+    console.log(header);
     function myFunction() {
         const currentScrollTop = window.scrollY;
 
@@ -256,6 +323,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
         } else {
             console.log('u');
             document.querySelector(".mynav").classList.add("sticky-top");
+
             document.querySelector(".mynav").style.transition = "all 5s ease-in-out";
 
         }
