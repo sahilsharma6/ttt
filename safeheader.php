@@ -228,19 +228,39 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
         myFunction();
     };
 
+    // function myFunction() {
+    //     if (
+    //         document.body.scrollTop > 10 ||
+    //         document.documentElement.scrollTop > 10
+    //     ) {
+    //         // document.querySelector(".navbar").classList.add("bg-black");
+    //         document.querySelector(".mynav").classList.add("sticky-top");
+    //         document.querySelector(".mynav").style.transition = "all 0.5s ease 10s";
+    //     } else {
+    //         document.querySelector(".mynav").classList.remove("sticky-top");
+    //         // document.querySelector("header").classList.remove("fixed-lg-top");
+    //         document.querySelector(".mynav").style.transition = "";
+
+    //     }
+    // }
+
+    let lastScrollTop = 0;
+
     function myFunction() {
-        if (
-            document.body.scrollTop > 10 ||
-            document.documentElement.scrollTop > 10
-        ) {
-            // document.querySelector(".navbar").classList.add("bg-black");
-            document.querySelector(".mynav").classList.add("sticky-top");
-            document.querySelector(".mynav").style.transition = "all 0.5s ease 10s";
-        } else {
+        const currentScrollTop = window.scrollY;
+
+        if (currentScrollTop > lastScrollTop) {
+            console.log('d');
             document.querySelector(".mynav").classList.remove("sticky-top");
-            // document.querySelector("header").classList.remove("fixed-lg-top");
-            document.querySelector(".mynav").style.transition = "";
+
+        } else {
+            console.log('u');
+            document.querySelector(".mynav").classList.add("sticky-top");
+            document.querySelector(".mynav").style.transition = "all 5s ease-in-out";
 
         }
+        lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+
+
     }
 </script>
