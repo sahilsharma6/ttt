@@ -155,7 +155,11 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                 // const username = loginUsername.textContent.chartAt(0).toUpperCase() + loginUsername.textextContent.slice(1);
                 const usernameStr = loginUsername.textContent
                 console.log(usernameStr);
-                let username = usernameStr.trim('').charAt(0).toUpperCase() + usernameStr.slice(1);
+                let username = usernameStr.trim()
+                username = username.charAt(0).toUpperCase() + username.slice(1)
+                console.log(username);
+
+
 
                 loginUsername.textContent = username;
                 showUsernameTxt.textContent = username;
