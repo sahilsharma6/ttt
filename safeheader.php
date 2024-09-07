@@ -228,8 +228,16 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
             <?php if (!empty($navlinks)): ?>
                 <?php foreach ($navlinks as $navlink): ?>
                     <?php
-                    $navlink_id = substr($navlink['url'], -2);
 
+
+                    // $navlink_id = substr($navlink['url'], -2);
+        
+                    $url = $navlink['url'];
+                    $url_components = parse_url($url);
+                    parse_str($url_components['query'], $params);
+                    $navlink_id = $params['category_id'];
+                    // $navlink_id = ;    
+        
                     $stmt = $connection->prepare("SELECT * FROM categories WHERE id = ?");
                     $stmt->bind_param('i', $navlink_id);
                     $stmt->execute();
@@ -246,12 +254,24 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
         
                     // $category_id = $category['id'];
         
+                    // echo $navlink_id;
+                    // echo $category['id'];
                     ?>
 
 
                     <a href="<?php echo htmlspecialchars($navlink['url']); ?>">
 
-                        <li class="">
+                        <li class="
+
+                        <?php
+
+                        if ($category['id'] == $current_category['id']) {
+                            echo 'bg-dark';
+                        } else {
+                            // echo 'bg-light';
+                        }
+                        ?>
+                        ">
                             <div class="">
 
                                 <img src="<?php echo $category['category_image']; ?>" height="20" width="20" alt="">
@@ -277,7 +297,16 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                             <?php
                             ?>
                             <a href="post.php?category_id=<?php echo $category['id']; ?>">
-                                <li class="">
+                                <li class="
+                                     <?php
+
+                                     if ($category['id'] == $current_category['id']) {
+                                         echo 'bg-dark';
+                                     } else {
+                                         // echo 'bg-light';
+                                     }
+                                     ?>
+                                ">
                                     <div class="">
 
                                         <img src="<?php echo $category['category_image']; ?>" height="20" width="20">
