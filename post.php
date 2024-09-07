@@ -321,7 +321,8 @@ mysqli_close($connection);
             position: absolute;
             top: 10px;
             left: 15px;
-            font-size: 20px;
+            font-size: 23px;
+            padding: 4px 2px;
             cursor: pointer;
             /* bottom: 0; */
             z-index: 99999999999;
@@ -863,11 +864,11 @@ mysqli_close($connection);
                                             showToast('error', 'Comment can not be more than 2000 characters long');
                                         }
                                         commentElement.innerHTML = `
-                                                                                                                                                              <strong class="mx-1  ">${comment.username}</strong>
-                                                                                                                                                             <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                                                                                                                                                                  <strong class="mx-1  ">${comment.username}</strong>
+                                                                                                                                                                 <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
                                                  
-                                                                                                                                                             <p>${comment.comment}</p>
-                                                                                                                                                              `;
+                                                                                                                                                                 <p>${comment.comment}</p>
+                                                                                                                                                                  `;
 
 
                                         <?php
