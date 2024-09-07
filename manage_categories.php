@@ -57,13 +57,41 @@ if (isset($_POST['update_category'])) {
 }
 
 // Handle category deletion
+// if (isset($_POST['delete_category'])) {
+//     $category_id = $_POST['category_id'];
+//     $stmt = mysqli_prepare($connection, "DELETE FROM categories WHERE id = ?");
+//     mysqli_stmt_bind_param($stmt, "i", $category_id);
+//     mysqli_stmt_execute($stmt);
+//     $success = "Category deleted successfully!";
+// }
+
+
 if (isset($_POST['delete_category'])) {
     $category_id = $_POST['category_id'];
+
+    // Delete dependent records from subcategories
+    $stmt = mysqli_prepare($connection, "DELETE FROM subcategories WHERE category_id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $category_id);
+    mysqli_stmt_execute($stmt);
+
+    // Delete dependent records from posts
+    $stmt = mysqli_prepare($connection, "DELETE FROM posts WHERE category_id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $category_id);
+    mysqli_stmt_execute($stmt);
+
+    // Delete dependent records from navlinks
+    $stmt = mysqli_prepare($connection, "DELETE FROM navlinks WHERE category_id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $category_id);
+    mysqli_stmt_execute($stmt);
+
+    // Now delete the category
     $stmt = mysqli_prepare($connection, "DELETE FROM categories WHERE id = ?");
     mysqli_stmt_bind_param($stmt, "i", $category_id);
     mysqli_stmt_execute($stmt);
-    $success = "Category deleted successfully!";
+
+    $success = "Category and related records deleted successfully!";
 }
+
 
 // Handle subcategory update
 if (isset($_POST['update_subcategory'])) {

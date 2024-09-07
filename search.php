@@ -2,6 +2,9 @@
 session_start();
 require 'db.php';
 
+
+
+
 // Retrieve the search term from the form input (POST method)
 $search_term = isset($_POST['q']) ? mysqli_real_escape_string($connection, $_POST['q']) : '';
 $search_results = [];
