@@ -48,6 +48,42 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
 
 ?>
 
+<style>
+    .search {
+        position: relative;
+
+    }
+
+    .search input {
+        border-radius: 12px;
+
+    }
+
+    .search button {
+        position: absolute;
+        right: 10px;
+        border: 0;
+        outline: none;
+        /* height: 100%; */
+    }
+
+    .search-mobile {
+        position: relative;
+    }
+
+    .search-mobile input {
+        height: 40px;
+        border-radius: 12px;
+    }
+
+
+    .search-mobile button {
+        position: absolute;
+        right: 10px;
+        border: 0;
+        /* height: 100%; */
+    }
+</style>
 
 
 
@@ -59,9 +95,9 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
         <form class="d-flex" method="POST" action="search.php" role="search" class="search-form">
             <!-- <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search" /> -->
             <div class="d-none search d-md-flex  p-2 ">
-                <input class="form-contro w-100 p-2 border " type="search" name="q"
+                <input class="form-contro w-100 p-2 border " type="sarch" name="q"
                     placeholder="Search tutorials, courses and ebooks..." aria-label="Search" />
-                <button class="btn btn-outline-dark " type="submit" style="border-radius: 0px 5px 5px 0px; ;">
+                <button class="btn  " type="submit" style="border-radius: 0px 5px 5px 0px; ;">
                     <i class="fas fa-search"></i>
                 </button>
             </div>
@@ -207,10 +243,10 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
     <div class="container-fluid border">
         <form class="d-flex" method="POST" action="search.php" role="search" class="w-100 ">
             <!-- <input class="form-control me-2" type="search" name="q" placeholder="Search" aria-label="Search" /> -->
-            <div class="d-flex w-100   p-2 m-0 " style="background-color: ">
+            <div class="d-flex w-100 search-mobile   p-2 m-0 " style="background-color: ">
                 <input class="form-contol w-100 px-1 border " style="font-size: 14px" type="search" name="q"
                     placeholder="Search tutorials, courses and ebooks..." aria-label="Serch" />
-                <button class="btn btn-outline-dark " type="submit" style="border-radius: 0px 5px 5px 0px; ;">
+                <button class="btn btn-outline-dar " type="submit" style="border-radius: 0px 5px 5px 0px; ;">
                     <i class="fas fa-search"></i>
                 </button>
             </div>

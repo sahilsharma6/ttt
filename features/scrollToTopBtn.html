@@ -24,6 +24,22 @@
     background-color: #0056b3; /* Darker blue on hover */
   }
 
+  .scroll-to-top-btn:hover .tooltip-scroll-to-top {
+    /* top: 0; */
+    opacity: 0;
+  }
+
+  .tooltip-scroll-to-top {
+    position: fixed;
+    bottom: 10px;
+    right: 70px;
+    background: #ffffff;
+    color: rgb(0, 0, 0);
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    /* display: none; */
+  }
+
   .scroll-to-top-btn.show {
     opacity: 1;
     transform: translateY(0);
@@ -33,14 +49,10 @@
     transform: translateY(100px);
   }
 </style>
-<button id="scrollToTopBtn" class="scroll-to-top-btn" title="Scroll to top">
-  &#8679;
-</button>
+<button id="scrollToTopBtn" class="scroll-to-top-btn">&#8679;</button>
+<p class="tooltip-scroll-to-top">Scroll to top</p>
 
 <script>
-  //   $(function () {
-  //     $('[data-toggle="tooltip"]').tooltip();
-  //   });
   document.addEventListener("DOMContentLoaded", () => {
     const scrollToTopBtn = document.getElementById("scrollToTopBtn");
 

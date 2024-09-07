@@ -804,13 +804,13 @@ mysqli_close($connection);
 
                     <form id="comment-form">
                         <?php if (isset($_SESSION['user_id'])): ?>
-                            <h3 class="mt-4 mb-3">Add Comment</h3>
+                            <!-- <h3 class="mt-4 mb-3">Add Comment</h3> -->
 
                             <input type="hidden" name="post_id" id="post-id" value="<?php echo $post_id; ?>">
                             <!-- Replace with actual post ID -->
-                            <div class="form-group">
-                                <textarea id="comment-text" name="comment" class="form-control" rows="3"
-                                    placeholder="Leave a comment..."></textarea>
+                            <div class="form-group mt-5">
+                                <textarea id="comment-text" name="comment" class="form-control" rows="3" placeholder="Be part of the discussion, post your opinion.
+"></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary mt-3">Post Comment</button>
 
@@ -858,14 +858,16 @@ mysqli_close($connection);
                                         const commentElement = document.createElement('li');
                                         commentElement.className = 'list-group-item';
                                         commentElement.setAttribute('data-comment-id', comment.id);
-                                        console.log(comment);
+                                        console.log({ comment });
+                                        if ({ comment }.length > 2000) {
+                                            showToast('error', 'Comment can not be more than 2000 characters long');
+                                        }
                                         commentElement.innerHTML = `
-                                                                                                                                                                                           <strong class="mx-1  ">${comment.username}</strong>
-                                                                                                                                                                                           <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
-
-
-                                                                                                                                                                                           <p>${comment.comment}</p>
-                                                                                                                                                                                           `;
+                                                                                                                                                              <strong class="mx-1  ">${comment.username}</strong>
+                                                                                                                                                             <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                                                 
+                                                                                                                                                             <p>${comment.comment}</p>
+                                                                                                                                                              `;
 
 
                                         <?php
@@ -877,13 +879,8 @@ mysqli_close($connection);
                                         <?php if (isset($_SESSION['username'])): ?>
                                             if (comment.username === '<?php echo $_SESSION['username']; ?>') {
 
-                                                commentElement.innerHTML += `
-                                                                                                                                                                                                                                                                                                                                        <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" 
-                                                                                                                                                                                                                                                                                                                                            data-bs-target="#editCommentModal" 
-                                                                                                                                                                                                                                                                                                                                          data-comment-id="${comment.id}" 
-                                                                                                                                                                                                                                                                                                                                          data-comment-text="${comment.comment}">Edit</a>
-                                                                                                                                                                                                                                                                                                                          <a href="#" class="btn btn-sm btn-outline-danger" 
-                                                                                                                                                                                                                                                                                                                                         data-comment-id="${comment.id}">Delete</a>`;
+                                                commentElement.innerHTML += `         <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"  data-bs-target="#editCommentModal" data-comment-id="${comment.id}"                       data-comment-text="${comment.comment}">Edit</a>          <a href="#" class="btn btn-sm btn-outline-danger"                      data-comment-id="${comment.id}">Delete</a>                    <hr>                   `;
+
                                             }
 
                                         <?php endif; ?>
