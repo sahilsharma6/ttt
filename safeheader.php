@@ -3,6 +3,12 @@
 // session_start();
 require 'db.php';
 
+
+$role = $_SESSION['role'] ?? null;
+$user_id = $_SESSION['user_id'] ?? null;
+$category_id = $_GET['category_id'] ?? null;
+// echo $category_id;
+// echo $user_id;
 // Fetch categories from the database
 $categories = [];
 $category_query = "SELECT id, category_name, category_image FROM categories";
@@ -128,6 +134,20 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                                 <?php echo $username; ?>
                             </span>
                         </div>
+
+
+                        <?php if ($role === 'Admin' || $role === 'SuperAdmin' || $role === 'Operator'): ?>
+                            <p class="" style="height:.1px; width:100%; background-color: #edebe6;"></p>
+                            <div class="mb-3">
+                                <a href="dashboard.php" style="color:black;">
+                                    <!-- <i class="fa-regular fa-user"></i> -->
+                                    <i class="fa-solid fa-house"></i>
+                                    <span>
+                                        Dashboard
+                                    </span>
+                                </a>
+                            </div>
+                        <?php endif; ?>
                         <!-- <hr> -->
                         <p class="" style="height:.1px; width:100%; background-color: #edebe6;"></p>
                         <div>
@@ -224,6 +244,8 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                     // foreach()
                     // if ($category !== null):
         
+                    // $category_id = $category['id'];
+        
                     ?>
 
 
@@ -251,6 +273,9 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                 <nav class="mynav">
                     <ul>
                         <?php foreach ($categories as $category): ?>
+
+                            <?php
+                            ?>
                             <a href="post.php?category_id=<?php echo $category['id']; ?>">
                                 <li class="">
                                     <div class="">

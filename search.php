@@ -8,7 +8,7 @@ $search_results = [];
 
 if ($search_term) {
     // Update the query to search in the title field only
-    $query = "SELECT id, title FROM posts WHERE title LIKE ?";
+    $query = "SELECT id, title, category_id, subcategory_id FROM posts WHERE title LIKE ?";
     $stmt = mysqli_prepare($connection, $query);
     $like_term = '%' . $search_term . '%';
     mysqli_stmt_bind_param($stmt, "s", $like_term);
@@ -79,15 +79,16 @@ mysqli_close($connection);
     <?php include_once 'safeheader.php'; ?>
 
     <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-3 col-lg-2 sidebar">
+        <div class="ro">
+            <nav class="col-md-12 col-lg-12 border mx-auto sidebar">
                 <h3>Search Results for "<?php echo htmlspecialchars($search_term); ?>"</h3>
                 <ul class="nav flex-column">
                     <?php if ($search_results): ?>
                         <?php foreach ($search_results as $result): ?>
                             <li class="nav-item">
                                 <i class="fa-solid fa-check mx-2" style="color:blue"></i>
-                                <a href="post.php?post_id=<?php echo $result['id']; ?>">
+                                <a
+                                    href="post.php?category_id=<?php echo $result['category_id']; ?>&subcategory_id=<?php echo $result['subcategory_id']; ?>&post_id=<?php echo $result['id']; ?>">
                                     <?php echo htmlspecialchars($result['title']); ?>
                                 </a>
                             </li>
@@ -98,7 +99,7 @@ mysqli_close($connection);
                 </ul>
             </nav>
 
-            <main class="col-md-9 col-lg-10 main-content">
+            <main class="col-md- col-lg-10 main-content">
                 <!-- Main content can be added here if needed -->
             </main>
         </div>

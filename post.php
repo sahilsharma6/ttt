@@ -6,6 +6,8 @@ require 'db.php';
 $category_id = isset($_GET['category_id']) ? (int) $_GET['category_id'] : null;
 $post_id = isset($_GET['post_id']) ? (int) $_GET['post_id'] : null;
 $subcategory_id = isset($_GET['subcategory_id']) ? (int) $_GET['subcategory_id'] : null;
+// $current_post_id = isset($_GET['post_id']) ? (int) $_GET['post_id'] : 0; 
+
 
 // Fetch categories from the database
 $categories = [];
@@ -391,19 +393,22 @@ mysqli_close($connection);
                         $posts = mysqli_fetch_all($result, MYSQLI_ASSOC);
                         mysqli_stmt_close($stmt);
 
-                        foreach ($posts as $post): ?>
-                            <!-- if post status is approved then show -->
-                            <li class="list-group-item">
-                                <a
-                                    href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory['id']; ?>&post_id=<?php echo $post['id']; ?>">
-                                    <i class="fas fa-file-alt"></i> <!-- Example icon for posts -->
 
-                                    <span>
+                        foreach ($posts as $post): ?>
+                            <!-- If post status is approved then show -->
+                            <li class="list-group-item <?php if ($post_id === $post['id'])
+                                echo 'bg-dark border-none text-white'; ?>">
+                                <a class="<?php if ($post_id === $post['id'])
+                                    echo 'text-white'; ?>"
+                                    href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory['id']; ?>&post_id=<?php echo $post['id']; ?>">
+                                    <i class="fas fa-file-alt "></i> <!-- Example icon for posts -->
+                                    <span class="">
                                         <?php echo htmlspecialchars($post['title']); ?>
                                     </span>
                                 </a>
                             </li>
                         <?php endforeach; ?>
+
                     </ul>
                 <?php endforeach; ?>
             </div>
@@ -855,12 +860,12 @@ mysqli_close($connection);
                                         commentElement.setAttribute('data-comment-id', comment.id);
                                         console.log(comment);
                                         commentElement.innerHTML = `
-                                                                                                               <strong class="mx-1  ">${comment.username}</strong>
-                                                                                                               <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                                                                                                                                                                                           <strong class="mx-1  ">${comment.username}</strong>
+                                                                                                                                                                                           <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
 
 
-                                                                                                               <p>${comment.comment}</p>
-                                                                                                               `;
+                                                                                                                                                                                           <p>${comment.comment}</p>
+                                                                                                                                                                                           `;
 
 
                                         <?php
@@ -873,12 +878,12 @@ mysqli_close($connection);
                                             if (comment.username === '<?php echo $_SESSION['username']; ?>') {
 
                                                 commentElement.innerHTML += `
-                                                                                                                                                                                <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" 
-                                                                                                                                                                                    data-bs-target="#editCommentModal" 
-                                                                                                                                                                                  data-comment-id="${comment.id}" 
-                                                                                                                                                                                  data-comment-text="${comment.comment}">Edit</a>
-                                                                                                                                                                  <a href="#" class="btn btn-sm btn-outline-danger" 
-                                                                                                                                                                                 data-comment-id="${comment.id}">Delete</a>`;
+                                                                                                                                                                                                                                                                                                                                        <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" 
+                                                                                                                                                                                                                                                                                                                                            data-bs-target="#editCommentModal" 
+                                                                                                                                                                                                                                                                                                                                          data-comment-id="${comment.id}" 
+                                                                                                                                                                                                                                                                                                                                          data-comment-text="${comment.comment}">Edit</a>
+                                                                                                                                                                                                                                                                                                                          <a href="#" class="btn btn-sm btn-outline-danger" 
+                                                                                                                                                                                                                                                                                                                                         data-comment-id="${comment.id}">Delete</a>`;
                                             }
 
                                         <?php endif; ?>
