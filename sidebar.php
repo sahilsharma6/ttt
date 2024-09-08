@@ -88,7 +88,8 @@ $username = $_SESSION['username'];
           <li><a href="register.php">register_users</a></li>
           <li><a href="Allcomments.php">Comments</a></li>
         </ul>
-      </li>';
+      </li>
+      ';
       }
       ?>
 
@@ -96,13 +97,18 @@ $username = $_SESSION['username'];
       <?php
       if ($_SESSION['role'] == 'SuperAdmin') {
         echo '
-     <li>
-        <a href="Settings.php">
-          <i class="bx bx-cog"></i>
-          <span class="link_name">Website Settings</span>
-        </a>
-        <ul class="sub-menu blank">
-          <li><a class="link_name" href="">Settings</a></li>
+   <li>
+        <div class="iocn-link">
+          <a href="#">
+            <i class="bx bx-cog"></i>
+            <span class="link_name">Settings</span>
+          </a>
+          <i class="bx bxs-chevron-down arrow"></i>
+        </div>
+        <ul class="sub-menu">
+          <li><a class="link_name" href="#">Settings</a></li>
+          <li><a href="logo-settings.php">logo</a></li>
+          <li><a href="navlink-settings.php">navigationLinks Settings</a></li>
         </ul>
       </li>
       ';

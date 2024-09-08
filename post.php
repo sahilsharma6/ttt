@@ -615,7 +615,7 @@ mysqli_close($connection);
                     <!--  -->
 
 
-                    <h2 class="mt-"><?php echo htmlspecialchars($current_post['title']); ?></h2>
+                    <!-- <h2 class="mt-"><?php echo htmlspecialchars($current_post['title']); ?></h2> -->
                     <div class="content">
                         <?php echo (($current_post['content'])); ?>
                     </div>
@@ -834,6 +834,7 @@ mysqli_close($connection);
                     <div class="comments">
                         <h3 class="comment-count mt-5">Comments</h3>
                         <div id="comments-list"></div>
+
                         <div id="pagination"></div>
                     </div>
                     <script>
@@ -864,11 +865,12 @@ mysqli_close($connection);
                                             showToast('error', 'Comment can not be more than 2000 characters long');
                                         }
                                         commentElement.innerHTML = `
-                                                                                                                                                                  <strong class="mx-1  ">${comment.username}</strong>
-                                                                                                                                                                 <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                                                                                                                                                                                                                                                                                                      <strong class="mx-1  ">${comment.username}</strong>
+                                                                                                                                                                                                                                                                                                     <small>${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
                                                  
-                                                                                                                                                                 <p>${comment.comment}</p>
-                                                                                                                                                                  `;
+                                                                                                                                                                                                                                                                                                     <p style="margin-left: 4px">${comment.comment}</p>
+                                                                                                                                                                                     
+                                                                                                                                                                                                                                                                                                      `;
 
 
                                         <?php
@@ -880,7 +882,7 @@ mysqli_close($connection);
                                         <?php if (isset($_SESSION['username'])): ?>
                                             if (comment.username === '<?php echo $_SESSION['username']; ?>') {
 
-                                                commentElement.innerHTML += `         <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"  data-bs-target="#editCommentModal" data-comment-id="${comment.id}"                       data-comment-text="${comment.comment}">Edit</a>          <a href="#" class="btn btn-sm btn-outline-danger"                      data-comment-id="${comment.id}">Delete</a>                    <hr>                   `;
+                                                commentElement.innerHTML += `         <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal"  data-bs-target="#editCommentModal" data-comment-id="${comment.id}"                       data-comment-text="${comment.comment}">Edit</a>          <a href="#" class="btn btn-sm btn-outline-danger"                      data-comment-id="${comment.id}">Delete</a>            `;
 
                                             }
 
@@ -889,6 +891,14 @@ mysqli_close($connection);
                                         commentsList.appendChild(commentElement);
                                     });
 
+                                    const listGroupItems = document.querySelectorAll('.list-group-item');
+                                    console.log(listGroupItems);
+                                    listGroupItems.forEach(item => {
+                                        const hr = document.createElement('hr');
+                                        item.appendChild(hr)
+                                        console.log(2);
+                                    })
+                                    console.log(7);
                                     // Setup pagination
                                     pagination.innerHTML = '';
                                     const ul = document.createElement('ul');
