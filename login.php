@@ -5,8 +5,7 @@ require_once 'db.php';
 $error = ''; // Initialize an error variable
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-  $usernamee = $_POST['username'];
-  $username = $usernamee->strtolower();
+  $username = $_POST['username'];
   $password = $_POST['password'];
 
   $stmt = mysqli_prepare($connection, "SELECT id, pass, role FROM testt WHERE username = ?");
