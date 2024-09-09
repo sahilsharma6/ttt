@@ -41,14 +41,14 @@ $username = $_SESSION['username'];
         <div class="iocn-link">
           <a href="#">
             <i class="bx bx-collection"></i>
-            <span class="link_name">Category</span>
+            <span class="link_name">Category Settings</span>
           </a>
           <i class="bx bxs-chevron-down arrow"></i>
         </div>
         <ul class="sub-menu">
-          <li><a class="link_name" href="">Category</a></li>
-          <li><a href="manage_categories.php">Categories</a></li>
-          <li><a href="./AddCategories.php">Add Categories</a></li>
+          <li><a class="link_name" href="">Category Settings</a></li>
+          <li><a href="manage_categories.php">Manage Categories</a></li>
+          <li><a href="./AddCategories.php">Create a new category</a></li>
         </ul> 
       </li>
       <li>
@@ -59,14 +59,21 @@ $username = $_SESSION['username'];
         <div class="iocn-link">
           <a href="#">
             <i class='bx bx-book-alt'></i>
-            <span class="link_name">Posts</span>
+            <span class="link_name">Manage Posts</span>
           </a>
           <i class='bx bxs-chevron-down arrow'></i>
         </div>
         <ul class="sub-menu">
-          <li><a class="link_name" href="#">Posts</a></li>
-          <li><a href="copyallp.php">Posts</a></li>
-          <li><a href="AddPost.php">Add Posts</a></li>
+          <li><a class="link_name" href="#">Manage Posts</a></li>
+          <li><a href="copyallp.php">All Posts</a></li>
+          <li><a href="AddPost.php">Add Post</a></li>
+          <?php
+          if ($_SESSION['role'] == 'SuperAdmin') {
+            echo '
+          <li><a href="Allcomments.php">User Comments</a></li>
+          ';
+          }
+          ?>
         </ul>
       </li>
 
@@ -78,15 +85,14 @@ $username = $_SESSION['username'];
         <div class="iocn-link">
           <a href="#">
             <i class="bx bx-user"></i>
-            <span class="link_name">Users</span>
+            <span class="link_name">Users Settings</span>
           </a>
           <i class="bx bxs-chevron-down arrow"></i>
         </div>
         <ul class="sub-menu">
-          <li><a class="link_name" href="#">Users</a></li>
-          <li><a href="manage.php">manage_users</a></li>
-          <li><a href="register.php">register_users</a></li>
-          <li><a href="Allcomments.php">Comments</a></li>
+          <li><a class="link_name" href="#">Users Settings</a></li>
+          <li><a href="manage.php">Manage Users</a></li>
+          <li><a href="register.php">Create a User</a></li>
         </ul>
       </li>
       ';
@@ -107,8 +113,8 @@ $username = $_SESSION['username'];
         </div>
         <ul class="sub-menu">
           <li><a class="link_name" href="#">Settings</a></li>
-          <li><a href="logo-settings.php">logo</a></li>
-          <li><a href="navlink-settings.php">navigationLinks Settings</a></li>
+          <li><a href="logo-settings.php">Logo</a></li>
+          <li><a href="navlink-settings.php">Navigation Links Settings</a></li>
         </ul>
       </li>
       ';

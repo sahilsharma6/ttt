@@ -71,7 +71,8 @@ a {
 }
 
 .mynav ul {
-  background: #2f676f;
+  /* background: #2f676f; */
+  background-color: #28a745;
   /* border: solid; */
   list-style: none;
   margin: 0;

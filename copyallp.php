@@ -127,6 +127,7 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                             echo 'selected'; ?>>Oldest</option>
                     </select>
                 </div>
+             
                 <div class="col-md-3">
                     <select name="category_filter" class="form-select">
                         <option value="">All Categories</option>
@@ -138,6 +139,8 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                         <?php endforeach; ?>
                     </select>
                 </div>
+
+
                 <div class="col-md-3">
                     <input type="text" name="search_query" class="form-control" placeholder="Search by title"
                         value="<?php echo htmlspecialchars($search_query); ?>">
@@ -236,11 +239,10 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                     </td>
 
                     <td>
-                        <a href="EditPost.php?id=<?php echo $row['id']; ?>">Edit</a>
+                        <a href="EditPost.php?id=<?php echo $row['id']; ?>" class="btn btn-primary w-75">Edit</a>
                         <?php if ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'SuperAdmin'): ?>
-                            |
                             <a href="DeletePost.php?id=<?php echo $row['id']; ?>"
-                                onclick="return confirm('Are you sure you want to delete this post?');">Delete</a>
+                                onclick="return confirm('Are you sure you want to delete this post?');" class="btn btn-danger mt-2 w-75">Delete</a>
                         <?php endif; ?>
                     </td>
                 </tr>

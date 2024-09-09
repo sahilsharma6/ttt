@@ -125,7 +125,17 @@ echo "</pre>";
                                 <td><?php echo nl2br(htmlspecialchars($comment['comment'])); ?></td>
                                 <td><?php echo htmlspecialchars($comment['username']); ?></td>
                                 <td><?php echo htmlspecialchars($comment['title']); ?></td>
-                                <td><?php echo htmlspecialchars($comment['created_at']); ?></td>
+                                <td>
+                                    <?php $date = htmlspecialchars($comment['created_at']);
+                                    // echo date('m-Y-d ', strtotime($date));
+                                    echo "
+                                    <script>
+                                    document.write(new Date('$date').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+                                    </script>
+                                    "
+
+                                        ?>
+                                </td>
                                 <td>
                                     <a href="?delete_comment_id=<?php echo $comment['id']; ?>&sort_order=<?php echo $sort_order; ?>&search_keyword=<?php echo htmlspecialchars($search_keyword); ?>"
                                         onclick="return confirm('Are you sure you want to delete this comment?');"

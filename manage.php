@@ -157,7 +157,7 @@ if (isset($_POST['change_password'])) {
                         value="<?php echo htmlspecialchars($search); ?>" class="form-control">
                 </div>
                 <div class="col-md-3">
-                    <select name="sort" class="form-control">
+                    <select name="sort" class="form-select">
                         <option value="latest" <?php if ($sort == 'latest')
                             echo 'selected'; ?>>Latest</option>
                         <option value="oldest" <?php if ($sort == 'oldest')
@@ -165,7 +165,7 @@ if (isset($_POST['change_password'])) {
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <select name="role_filter" class="form-control">
+                    <select name="role_filter" class="form-select">
                         <option value="" <?php if ($role_filter == '')
                             echo 'selected'; ?>>All Roles</option>
                         <option value="Admin" <?php if ($role_filter == 'Admin')
@@ -181,7 +181,7 @@ if (isset($_POST['change_password'])) {
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <select name="records_per_page" class="form-control">
+                    <select name="records_per_page" class="form-select">
                         <option value="10" <?php if ($records_per_page == 10)
                             echo 'selected'; ?>>10 per page</option>
                         <option value="25" <?php if ($records_per_page == 25)
@@ -236,6 +236,9 @@ if (isset($_POST['change_password'])) {
                                             SuperAdmin</option>
                                     <?php endif; ?>
                                 </select>
+
+
+
                                 <?php if ($row['role'] == 'SuperAdmin'): ?>
                                     <button type="submit" class="btn btn-primary" name="update_role" disabled>disabled
                                     </button>
@@ -257,10 +260,10 @@ if (isset($_POST['change_password'])) {
 
                             <form action="manage.php" method="POST" class="d-inline">
                                 <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($row['id']); ?>">
-                                <input type="password" name="new_password" placeholder="New Password" class="form-control">
+                                <input type="password" name="new_password" placeholder="New Password" class="form-control ">
                                 <input type="password" name="confirm_password" placeholder="Confirm Password"
-                                    class="form-control">
-                                <button type="submit" name="change_password" class="btn btn-warning">Change
+                                    class="form-control   mt-2">
+                                <button type="submit" name="change_password" class="btn btn-warning  mt-2">Update
                                     Password</button>
                             </form>
                         </td>
@@ -301,21 +304,21 @@ if (isset($_POST['change_password'])) {
             <div class="mt-5">
                 <h3>Register a New Admin or Operator</h3>
                 <form action="manage.php" method="POST">
-                    <div class="mb-3">
+                    <div class="mb-3 w-25">
                         <label for="username" class="form-label">Username</label>
-                        <input type="text" id="username" name="username" class="form-control" required>
+                        <input type="text" id="username" name="username" class="form-control " required>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3 w-25">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" id="email" name="email" class="form-control" required>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3 w-25">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" id="password" name="password" class="form-control" required>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-3 w-25">
                         <label for="role" class="form-label">Role</label>
-                        <select id="role" name="role" class="form-control">
+                        <select id="role" name="role" class="form-select">
                             <option value="Admin">Admin</option>
                             <option value="Operator">Operator</option>
                         </select>
