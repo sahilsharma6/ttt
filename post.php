@@ -49,6 +49,7 @@ if ($subcategory_id) {
     if (!$post_id && count($posts) > 0) {
         $post_id = $posts[0]['id']; // Default to the first post if none is selected
         header("Location: post.php?category_id=$category_id&subcategory_id=$subcategory_id&post_id=$post_id");
+        // header("Location: post$category_id/$subcategory_id/$post_id");
         exit;
     }
 }
@@ -189,7 +190,7 @@ mysqli_close($connection);
 
         .sidebar {
             background-color: #f8f9fa;
-            padding: 20px;
+            /* padding: 20px; */
         }
 
         .sidebar h3 {
@@ -260,7 +261,7 @@ mysqli_close($connection);
             background-color: re;
             background-color: #f8f9fa;
             font-size: 17px;
-
+            border-radius: 0;
         }
 
         .sidebar li.list-group-item .fas {
@@ -400,8 +401,9 @@ mysqli_close($connection);
                             <li class="list-group-item <?php if ($post_id === $post['id'])
                                 echo 'bg-dark border-none text-white'; ?>">
                                 <a class="<?php if ($post_id === $post['id'])
-                                    echo 'text-white'; ?>"
+                                    echo 'text-white border-0'; ?>"
                                     href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory['id']; ?>&post_id=<?php echo $post['id']; ?>">
+
                                     <i class="fas fa-file-alt "></i> <!-- Example icon for posts -->
                                     <span class="">
                                         <?php echo htmlspecialchars($post['title']); ?>
@@ -547,7 +549,7 @@ mysqli_close($connection);
                     <div class="d-flex align-items-center justify-content-between  ">
                         <div>
                             <?php
-                            $date = new DateTime($current_post['created_at']);
+                            $date = new DateTime(datetime: $current_post['created_at']);
                             // echo $date->format('d M Y'); // Outputs: 24 Aug 2024
                             ?>
                         </div>
@@ -585,20 +587,18 @@ mysqli_close($connection);
                         </div>
                     </div>
 
-                    <script>
+
+
+
+
+
+                    <!-- <script>
                         document.querySelector('.share-btn').addEventListener('click', function () {
                             const shareOptions = document.querySelector('.share-options');
                             shareOptions.classList.toggle('show-options');
                         });
 
-                        // window.addEventListener('click', function (event) {
-                        //     if (!event.target.matches('.share-btn')) {
-                        //         const shareOptions = document.querySelector('.share-options');
-                        //         if (shareOptions.classList.contains('show-options')) {
-                        //             shareOptions.classList.remove('show-options');
-                        //         }
-                        //     }
-                        // });
+
 
                         document.querySelector('.copy').addEventListener('click', function () {
                             const copyLinkInput = document.getElementById('copyLinkInput');
@@ -611,8 +611,8 @@ mysqli_close($connection);
                                 console.error('Could not copy text: ', err);
                             });
                         });
-                    </script>
-                    <!--  -->
+                    </script> -->
+
 
 
                     <!-- <h2 class="mt-"><?php echo htmlspecialchars($current_post['title']); ?></h2> -->
@@ -663,7 +663,34 @@ mysqli_close($connection);
                                     clip-rule="evenodd"></path>
                             </svg>
                             <span>Like(s)</span>
-                            <span class="mx-3"><i class="fa-regular fa-share-from-square"></i> Share</span>
+                            <span>
+                                <div class="share-container ">
+                                    <button class="share-btn " style="font-size: 16px;">
+                                        <span class="mx-3"><i class="fa-regular fa-share-from-square"></i> Share</span>
+                                    </button>
+                                    <div class="share-options">
+                                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                                            target="_blank" class="share-option">
+                                            <i class="fab fa-facebook-f"></i> Share on Facebook
+                                        </a>
+                                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
+                                            target="_blank" class="share-option">
+                                            <i class="fab fa-twitter"></i> Share on Twitter
+                                        </a>
+                                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
+                                            target="_blank" class="share-option">
+                                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                                        </a>
+                                        <span class="share-option copy">
+                                            <i class="fa fa-link"></i> Copy Link
+                                            <input type="text" hidden
+                                                value="https://yourwebsite.com/post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $post_id; ?>"
+                                                id="copyLinkInput" readonly>
+                                        </span>
+                                    </div>
+                                </div>
+                            </span>
+                            <!-- <span class="mx-3"><i class="fa-regular fa-share-from-square"></i> Share</span> -->
 
                         </div>
                         <div class="views mt-3">
@@ -745,30 +772,7 @@ mysqli_close($connection);
 
 
                     <!-- share -->
-                    <!-- <div class="share-buttons">
-                        <h4>Share this post:</h4>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
-                            target="_blank" class="btn btn-primary">
-                            <i class="fab fa-facebook-f"></i> Share on Facebook
-                        </a>
 
-                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode('https://yourwebsite.com/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>&text=<?php echo urlencode($current_post['title']); ?>"
-                            target="_blank" class="btn btn-info">
-                            <i class="fab fa-twitter"></i> Share on Twitter
-                        </a>
-
-                        <a href="http"></a>
-
-                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
-                            target="_blank" class="btn btn-success">
-                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
-                        </a>
-                        <a href="https://api.whatsapp.com/send?text=<?php echo urlencode('localhost/tutorial-test/My/post.php?category_id=' . $category_id . '&subcategory_id=' . $subcategory_id . '&post_id=' . $post_id); ?>"
-                            target="_blank" class="btn btn-success">
-                            <i class="fab fa-whatsapp"></i> Share on WhatsApp
-                        </a>
-
-                    </div> -->
 
 
                     <!-- Three-dot button -->
@@ -865,14 +869,14 @@ mysqli_close($connection);
                                             showToast('error', 'Comment can not be more than 2000 characters long');
                                         }
                                         commentElement.innerHTML = `
-                                                                                                                                                                                                                                                                                                          <strong class="mx-1  ">${comment.username}</strong>
-                                                                                                                                                                                                                                                                                                         <small>
-                                                                                                                                                                                                                                                                                                         ${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                                                                                                                                                                                                                                                                         </small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <strong class="mx-1  ">${comment.username}</strong>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </small>
                                                  
-                                                                                                                                                                                                                                                                                                         <p style="margin-left: 4px">${comment.comment}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <p style="margin-left: 4px">${comment.comment}</p>
                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                                          `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          `;
 
 
                                         <?php
@@ -1108,6 +1112,71 @@ mysqli_close($connection);
 
         // Call the function to apply the changes
         copyToClipboardCode();
+    </script>
+
+
+
+    <!-- <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            document.querySelectorAll('.share-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const shareOptions = this.nextElementSibling;
+                    shareOptions.classList.toggle('show-options');
+
+                    document.querySelectorAll('.copy').forEach(function (copyBtn) {
+                        copyBtn.addEventListener('click', function () {
+                            const copyLinkInput = document.getElementById('copyLinkInput');
+                            let copyText = copyLinkInput.value;
+
+                            navigator.clipboard.writeText(copyText).then(function () {
+                                showToast('success', 'Link copied to clipboard!');
+                                // alert('Link copied to clipboard!');
+                            }, function (err) {
+                                console.error('Could not copy text: ', err);
+                            });
+
+                        })
+
+                    });
+
+                })
+
+            })
+
+        })
+    </script> -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Function to handle copying link
+            function setupCopyLinkListeners() {
+                document.querySelectorAll('.copy').forEach(function (copyBtn) {
+                    copyBtn.addEventListener('click', function () {
+                        // Find the input field within the clicked copy button
+                        const copyLinkInput = this.querySelector('input');
+                        let copyText = copyLinkInput.value;
+
+                        navigator.clipboard.writeText(copyText).then(function () {
+                            showToast('success', 'Link copied to clipboard!');
+                            // alert('Link copied to clipboard!');
+                        }, function (err) {
+                            console.error('Could not copy text: ', err);
+                        });
+                    });
+                });
+            }
+
+            setupCopyLinkListeners();
+
+            document.querySelectorAll('.share-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const shareOptions = this.nextElementSibling;
+                    shareOptions.classList.toggle('show-options');
+                });
+            });
+
+        });
     </script>
 
 

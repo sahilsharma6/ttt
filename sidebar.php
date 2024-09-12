@@ -92,7 +92,7 @@ $username = $_SESSION['username'];
         <ul class="sub-menu">
           <li><a class="link_name" href="#">Users Settings</a></li>
           <li><a href="manage.php">Manage Users</a></li>
-          <li><a href="register.php">Create a User</a></li>
+          <li><a href="create-user.php">Create a User</a></li>
         </ul>
       </li>
       ';

@@ -166,7 +166,9 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                 <th>Title</th>
                 <th>Content</th>
                 <th>Category</th>
+                <?php if ($_SESSION['role'] === 'SuperAdmin'): ?>
                 <th>Status</th>
+                <?php endif; ?>
                 <th>Created By</th>
                 <th>Actions</th>
             </tr>
@@ -188,10 +190,10 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                         ?>
                     </td>
                     <td><?php echo htmlspecialchars($row['category_name']); ?></td>
-                    <td>
-
+                    
                     <!-- Approve/Reject button -->
                     <?php if ($_SESSION['role'] === 'SuperAdmin'): ?>
+                        <td>
                             <input type="checkbox" class="status-toggle" data-id="<?php echo $row['id']; ?>"
                             <?php if ($row['status'] == 'approved') echo 'checked'; ?> >
                             <span class="status-label"><?php echo $row['status'];?></span>
@@ -232,8 +234,8 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                              }
 
 </script>
+</td>
                     <?php endif; ?>
-                    </td>
                     <td>
                         <?php echo htmlspecialchars($row['created_by']); ?>
                     </td>
