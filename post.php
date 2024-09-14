@@ -340,9 +340,10 @@ mysqli_close($connection);
         }
 
         .sidebar.active {
-            margin-top: 15px;
             right: 0%;
+            padding-top: 40px;
             z-index: 9999;
+            padding-inline: 6px;
         }
 
         @media screen and (max-width: 767.5px) {
@@ -376,8 +377,15 @@ mysqli_close($connection);
 
 
 
+    <style>
+        .myrow>* {
+            padding-left: 0;
+            padding-right: 0;
+        }
+    </style>
+
     <div class="container-fluid">
-        <div class="row">
+        <div class="row myrow">
             <div class="col-md-3 sidebar">
                 <?php foreach ($subcategories as $subcategory): ?>
                     <h3>
@@ -433,7 +441,7 @@ mysqli_close($connection);
                 })
             </script>
 
-            <div class="col-md-9 main-content">
+            <div class="col-md-9 main-content px-2">
                 <?php if ($post_id): ?>
 
                     <style>
@@ -616,7 +624,7 @@ mysqli_close($connection);
 
 
                     <!-- <h2 class="mt-"><?php echo htmlspecialchars($current_post['title']); ?></h2> -->
-                    <div class="content">
+                    <div class="content px-2">
                         <?php echo (($current_post['content'])); ?>
                     </div>
 
@@ -869,14 +877,14 @@ mysqli_close($connection);
                                             showToast('error', 'Comment can not be more than 2000 characters long');
                                         }
                                         commentElement.innerHTML = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          <strong class="mx-1  ">${comment.username}</strong>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <small>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  <strong class="mx-1  ">${comment.username}</strong>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </small>
                                                  
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         <p style="margin-left: 4px">${comment.comment}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <p style="margin-left: 4px">${comment.comment}</p>
                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  `;
 
 
                                         <?php

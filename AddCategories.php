@@ -284,7 +284,9 @@ mysqli_close($connection);
                     </div>
                 </div>
             </div>
-            <button type="button" onclick="addSubcategoryField()">Add Another Subcategory</button>
+            <button type="button" onclick="addSubcategoryField()" class=""
+                style="margin-block: 10px;padding: 10px 20px;">Add Another
+                Subcategory</button>
             <div class="field">
                 <div class="input-area">
                     <input type="file" name="category_image" required>

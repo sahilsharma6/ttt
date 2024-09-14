@@ -156,7 +156,7 @@ while ($row = mysqli_fetch_assoc($categories_result)) {
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <button type="submit" class="btn btn-primary mt-2">Filter</button>
                 </div>
             </div>
         </form>

@@ -1,4 +1,5 @@
-<?php session_start();
+<?php
+session_start();
 require 'db.php';
 
 // Enable error reporting for debugging
@@ -28,11 +29,33 @@ if (isset($_GET['delete_comment_id'])) {
     mysqli_stmt_close($delete_query);
 }
 
+// Pagination 
+$comments_per_page = 10;
+$page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $comments_per_page;
+
 // Sorting and searching parameters
 $sort_order = isset($_GET['sort_order']) ? $_GET['sort_order'] : 'DESC';
 $search_keyword = isset($_GET['search_keyword']) ? $_GET['search_keyword'] : '';
 
-// Fetch all comments with details
+// Fetch total number of comments for pagination
+$total_comments_query = "
+SELECT COUNT(*) AS total_comments
+FROM comments
+JOIN testt ON comments.user_id = testt.id
+JOIN posts ON comments.post_id = posts.id
+WHERE posts.title LIKE ?
+";
+$search_keyword_param = '%' . $search_keyword . '%';
+$total_comments_stmt = mysqli_prepare($connection, $total_comments_query);
+mysqli_stmt_bind_param($total_comments_stmt, "s", $search_keyword_param);
+mysqli_stmt_execute($total_comments_stmt);
+$total_comments_result = mysqli_stmt_get_result($total_comments_stmt);
+$total_comments = mysqli_fetch_assoc($total_comments_result)['total_comments'];
+$total_pages = ceil($total_comments / $comments_per_page); // Calculate total pages
+mysqli_stmt_close($total_comments_stmt);
+
+// Fetch comments with pagination
 $comments_query = "
 SELECT comments.id, comments.comment, comments.created_at, testt.username, posts.title
 FROM comments
@@ -40,26 +63,15 @@ JOIN testt ON comments.user_id = testt.id
 JOIN posts ON comments.post_id = posts.id
 WHERE posts.title LIKE ?
 ORDER BY comments.created_at $sort_order
+LIMIT ? OFFSET ?
 ";
-$search_keyword = '%' . $search_keyword . '%';
 $comments_stmt = mysqli_prepare($connection, $comments_query);
-mysqli_stmt_bind_param($comments_stmt, "s", $search_keyword);
+mysqli_stmt_bind_param($comments_stmt, "sii", $search_keyword_param, $comments_per_page, $offset);
 mysqli_stmt_execute($comments_stmt);
 $comments_result = mysqli_stmt_get_result($comments_stmt);
 
-if (!$comments_result) {
-    die("Query Failed: " . mysqli_error($connection));
-}
-
 $comments = mysqli_fetch_all($comments_result, MYSQLI_ASSOC);
-
-// Debug: Print fetched comments
-echo "
-<pre>";
-// print_r($comments);
-echo "</pre>";
-
-// mysqli_close($connection);
+mysqli_stmt_close($comments_stmt);
 ?>
 
 <!DOCTYPE html>
@@ -76,32 +88,32 @@ echo "</pre>";
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /*  */
+        .pagination a.active {
+            font-weight: bold;
+            text-decoration: underline;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="wrapper" style="background:; width: 100vw; height: ;">
+    <div class="wrapper" style="width: 100vw; height: ;">
 
         <?php include_once 'sidebar.php'; ?>
 
         <div class="dash-content">
             <!-- Search Form -->
-            <form class="form-inline my-3 d-flex  align-items-center gap-2 " method="GET" action="">
-                <input type="text" name="search_keyword" class="form-control my-2 " placeholder="Search by post title"
+            <form class="form-inline my-3 d-flex align-items-center gap-2" method="GET" action="">
+                <input type="text" name="search_keyword" class="form-control my-2" placeholder="Search by post title"
                     style="height:40px; width:250px"
                     value="<?php echo htmlspecialchars(isset($_GET['search_keyword']) ? $_GET['search_keyword'] : ''); ?>">
-                <select name="sort_order" class="form-control mr-2" style="height:40px; width:250px">
+                <select name="sort_order" class="form-select mr-2" style="height:40px; width:250px">
                     <option value="DESC" <?php echo (isset($_GET['sort_order']) && $_GET['sort_order'] === 'DESC') ? 'selected' : ''; ?>>Latest</option>
                     <option value="ASC" <?php echo (isset($_GET['sort_order']) && $_GET['sort_order'] === 'ASC') ? 'selected' : ''; ?>>Oldest</option>
                 </select>
-
-                <button type="submit" class="btn btn-primary my-2 px-5 py-1 " style="height:39px">Filter</button>
+                <button type="submit" class="btn btn-primary my-2 px-5 py-1" style="height:39px">Filter</button>
             </form>
 
-            <!-- <h1 class="text-center">All Comments</h1> -->
-            <!-- <p class="text-center">Welcome, <?php echo htmlspecialchars($username); ?> (Superadmin)</p> -->
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -126,18 +138,13 @@ echo "</pre>";
                                 <td><?php echo htmlspecialchars($comment['username']); ?></td>
                                 <td><?php echo htmlspecialchars($comment['title']); ?></td>
                                 <td>
-                                    <?php $date = htmlspecialchars($comment['created_at']);
-                                    // echo date('m-Y-d ', strtotime($date));
-                                    echo "
+                                    <?php $date = htmlspecialchars($comment['created_at']); ?>
                                     <script>
-                                    document.write(new Date('$date').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+                                        document.write(new Date('<?php echo $date; ?>').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
                                     </script>
-                                    "
-
-                                        ?>
                                 </td>
                                 <td>
-                                    <a href="?delete_comment_id=<?php echo $comment['id']; ?>&sort_order=<?php echo $sort_order; ?>&search_keyword=<?php echo htmlspecialchars($search_keyword); ?>"
+                                    <a href="?delete_comment_id=<?php echo $comment['id']; ?>&sort_order=<?php echo $sort_order; ?>&search_keyword=<?php echo htmlspecialchars($search_keyword); ?>&page=<?php echo $page; ?>"
                                         onclick="return confirm('Are you sure you want to delete this comment?');"
                                         class="btn btn-danger btn-sm">Delete</a>
                                 </td>
@@ -146,9 +153,62 @@ echo "</pre>";
                     <?php endif; ?>
                 </tbody>
             </table>
+
+
+            <style>
+                .pagination {
+                    display: flex;
+                    justify-content: center;
+                    padding: 20px 0;
+                }
+
+                .pagination a {
+                    margin: 0 5px;
+                    padding: 8px 16px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    color: #007bff;
+                    text-decoration: none;
+
+                }
+
+                .pagination a.active {
+                    background-color: #007bff;
+                    color: white;
+                    text-decoration: none;
+
+                    border: 1px solid #007bff;
+                }
+
+                .pagination a:hover {
+                    background-color: #e9ecef;
+                    color: #0056b3;
+                }
+            </style>
+            <!-- Pagination Links -->
+            <div class="pagination d-flex justify-content-center">
+                <?php if ($page > 1): ?>
+                    <a
+                        href="?page=<?php echo $page - 1; ?>&sort_order=<?php echo urlencode($sort_order); ?>&search_keyword=<?php echo urlencode($search_keyword); ?>">&laquo;
+                        Previous</a>
+                <?php endif; ?>
+
+                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                    <a href="?page=<?php echo $i; ?>&sort_order=<?php echo urlencode($sort_order); ?>&search_keyword=<?php echo urlencode($search_keyword); ?>"
+                        class="<?php if ($i == $page)
+                            echo 'active'; ?>">
+                        <?php echo $i; ?>
+                    </a>
+                <?php endfor; ?>
+
+                <?php if ($page < $total_pages): ?>
+                    <a
+                        href="?page=<?php echo $page + 1; ?>&sort_order=<?php echo urlencode($sort_order); ?>&search_keyword=<?php echo urlencode($search_keyword); ?>">Next
+                        &raquo;</a>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
-
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
