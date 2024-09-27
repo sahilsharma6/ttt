@@ -6,8 +6,26 @@ require 'db.php';
 
 $role = $_SESSION['role'] ?? null;
 $user_id = $_SESSION['user_id'] ?? null;
-$category_id = $_GET['category_id'] ?? null;
-// echo $category_id;
+$category_name = $_GET['category_name'] ?? null;
+$category_id = null;
+
+
+
+
+$getCategoryID = "SELECT id FROM categories WHERE category_name = ?";
+$stmt = mysqli_prepare($connection, $getCategoryID);
+mysqli_stmt_bind_param($stmt, "s", $category_name);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+if ($result) {
+    $myCategory = mysqli_fetch_assoc($result);
+    if ($myCategory) {
+        $category_id = $myCategory['id'];
+    }
+}
+
+echo $category_name;
+echo $category_id;
 // echo $user_id;
 // Fetch categories from the database
 $categories = [];
@@ -24,8 +42,8 @@ $navlinks = [];
 $current_category = null;
 
 // Check if a category_id is provided
-if (isset($_GET['category_id'])) {
-    $category_id = intval($_GET['category_id']);
+if (isset($_GET['category_name'])) {
+    // $category_id = intval($_GET['category_id']);
 
     // Fetch the navlinks for the selected category
     $stmt = $connection->prepare("SELECT * FROM navlinks WHERE category_id = ?");
@@ -271,7 +289,20 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
                     $url = $navlink['url'];
                     $url_components = parse_url($url);
                     parse_str($url_components['query'], $params);
-                    $navlink_id = $params['category_id'];
+                    $navlink_name = $params['category_name'];
+                    // echo $params['category_name'];
+                    $getNavLinkID = "SELECT id FROM categories WHERE category_name = ?";
+                    $stmt = mysqli_prepare($connection, $getNavLinkID);
+                    mysqli_stmt_bind_param($stmt, "s", $navlink_name);
+                    mysqli_stmt_execute($stmt);
+                    $result = mysqli_stmt_get_result($stmt);
+                    if ($result) {
+                        $myCategory = mysqli_fetch_assoc($result);
+                        if ($myCategory) {
+                            $navlink_id = $myCategory['id'];
+                        }
+                    }
+                    // echo $url;
                     // $navlink_id = ;    
         
                     $stmt = $connection->prepare("SELECT * FROM categories WHERE id = ?");

@@ -3,11 +3,78 @@ session_start();
 require 'db.php';
 
 // Get category ID, subcategory ID, and post ID from URL
-$category_id = isset($_GET['category_id']) ? (int) $_GET['category_id'] : null;
-$post_id = isset($_GET['post_id']) ? (int) $_GET['post_id'] : null;
-$subcategory_id = isset($_GET['subcategory_id']) ? (int) $_GET['subcategory_id'] : null;
-// $current_post_id = isset($_GET['post_id']) ? (int) $_GET['post_id'] : 0; 
+// $category_id = isset($_GET['category_id']) ? (int) $_GET['category_id'] : null;
+// $post_id = isset($_GET['post_id']) ? (int) $_GET['post_id'] : null;
+// $subcategory_id = isset($_GET['subcategory_id']) ? (int) $_GET['subcategory_id'] : null;
+// // $current_post_id = isset($_GET['post_id']) ? (int) $_GET['post_id'] : 0; 
 
+
+
+$category_name = isset($_GET['category_name']) ? $_GET['category_name'] : null;
+$subcategory_name = isset($_GET['subcategory_name']) ? $_GET['subcategory_name'] : null;
+$post_title = isset($_GET['post_title']) ? $_GET['post_title'] : null;
+
+$category_id = null;
+$subcategory_id = null;
+$post_id = null;
+
+
+// echo $category_name;
+// echo $subcategory_name;
+// echo $post_title;
+// 
+// 
+if ($category_name) {
+    $category_query = "SELECT id FROM categories WHERE category_name = ?";
+    $stmt = mysqli_prepare($connection, $category_query);
+    mysqli_stmt_bind_param($stmt, "s", $category_name);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $category = mysqli_fetch_assoc($result);
+    if ($category) {
+        $category_id = $category['id'];
+    }
+    mysqli_stmt_close($stmt);
+}
+
+// Fetch subcategory_id based on subcategory_name and category_id
+if ($category_id && $subcategory_name) {
+    $subcategory_query = "SELECT id, subcategory_name FROM subcategories WHERE subcategory_name = ? AND category_id = ?";
+    $stmt = mysqli_prepare($connection, $subcategory_query);
+    mysqli_stmt_bind_param($stmt, "si", $subcategory_name, $category_id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $subcategory = mysqli_fetch_assoc($result);
+    if ($subcategory) {
+        $subcategory_id = $subcategory['id'];
+    }
+    mysqli_stmt_close($stmt);
+}
+
+// Fetch post_id based on post_title and subcategory_id
+if ($subcategory_id && $post_title) {
+    $post_query = "SELECT id, title FROM posts WHERE title = ? AND subcategory_id = ?";
+    $stmt = mysqli_prepare($connection, $post_query);
+    mysqli_stmt_bind_param($stmt, "si", $post_title, $subcategory_id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $post = mysqli_fetch_assoc($result);
+    if ($post) {
+        $post_id = $post['id'];
+    }
+    mysqli_stmt_close($stmt);
+}
+
+// 
+// 
+
+
+// echo $category_id;
+// echo '|';
+// echo $subcategory_id;
+// echo '|';
+
+// echo $post_id;
 
 // Fetch categories from the database
 $categories = [];
@@ -32,6 +99,7 @@ if ($category_id) {
     // If no subcategory is selected, select the first subcategory by default
     if (!$subcategory_id && !empty($subcategories)) {
         $subcategory_id = $subcategories[0]['id'];
+        $subcategory_name = $subcategories[0]['subcategory_name'];
     }
 }
 
@@ -48,7 +116,9 @@ if ($subcategory_id) {
 
     if (!$post_id && count($posts) > 0) {
         $post_id = $posts[0]['id']; // Default to the first post if none is selected
-        header("Location: post.php?category_id=$category_id&subcategory_id=$subcategory_id&post_id=$post_id");
+        $post_title = $posts[0]['title'];
+        // header("Location: post.php?category_id=$category_id&subcategory_id=$subcategory_id&post_id=$post_id");
+        header("Location:post.php?category_name=$category_name&subcategory_name=$subcategory_name&post_title=$post_title");
         // header("Location: post$category_id/$subcategory_id/$post_id");
         exit;
     }
@@ -72,6 +142,7 @@ if ($post_id) {
     mysqli_stmt_close($stmt);
 
     // Set default values if no post is found
+
     if (!$current_post) {
         $current_post = ['title' => 'No post found', 'content' => '', 'views' => 0];
     }
@@ -119,24 +190,43 @@ if ($post_id) {
 // Determine the position of the current post in the $posts array
 $current_post_index = array_search($post_id, array_column($posts, 'id'));
 
+
 // Determine previous and next post IDs if they exist
 $prev_post_id = $current_post_index > 0 ? $posts[$current_post_index - 1]['id'] : null;
-$next_post_id = $current_post_index !== false && $current_post_index < count($posts) - 1 ? $posts[$current_post_index + 1]['id'] : null;
+$prev_title = $current_post_index > 0 ? $posts[$current_post_index - 1]['title'] : null; // Fetch previous post title
 
+$next_post_id = $current_post_index !== false && $current_post_index < count($posts) - 1 ? $posts[$current_post_index + 1]['id'] : null;
+$next_title = $current_post_index !== false && $current_post_index < count($posts) - 1 ? $posts[$current_post_index + 1]['title'] : null; // Fetch next post title
+
+
+
+// echo "Current post index: $current_post_index";
+// echo $prev_post_id ?? 0;
+// echo $current_post_id;
+// echo $next_post_id ?? 0;
 // Fetch the previous subcategory's last post if on the first post of the current subcategory
 $prev_subcategory_id = null;
 $prev_subcategory_last_post_id = null;
 if ($current_post_index === 0 && !empty($subcategories)) {
     $prev_subcategory_index = array_search($subcategory_id, array_column($subcategories, 'id')) - 1;
+    // echo $prev_subcategory_index ?? "no prev subcategory";
     if ($prev_subcategory_index >= 0) {
         $prev_subcategory_id = $subcategories[$prev_subcategory_index]['id'];
-        $prev_posts_query = "SELECT id FROM posts WHERE subcategory_id = ? ORDER BY id DESC LIMIT 1";
+        // echo $prev_subcategory_index ?? "no prev subcategory";
+        $prev_subcategory_name = $subcategories[$prev_subcategory_index]['subcategory_name']; // Get the subcategory name
+
+        // echo $prev_subcategory_name;
+
+        $prev_posts_query = "SELECT id,title FROM posts WHERE subcategory_id = ? ORDER BY id DESC LIMIT 1";
         $stmt = mysqli_prepare($connection, $prev_posts_query);
         mysqli_stmt_bind_param($stmt, "i", $prev_subcategory_id);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $prev_post = mysqli_fetch_assoc($result);
-        $prev_subcategory_last_post_id = $prev_post['id'];
+        // echo $prev_post_title;
+        // echo $prev_post['id'] ?? "no prev post";
+        $prev_subcategory_last_post_id = $prev_post['id'] ?? null;
+        $prev_post_title = $prev_post['title'] ?? "No previous post"; // Get the post title
         mysqli_stmt_close($stmt);
     }
 }
@@ -148,13 +238,17 @@ if ($current_post_index === count($posts) - 1 && !empty($subcategories)) {
     $next_subcategory_index = array_search($subcategory_id, array_column($subcategories, 'id')) + 1;
     if ($next_subcategory_index < count($subcategories)) {
         $next_subcategory_id = $subcategories[$next_subcategory_index]['id'];
-        $next_posts_query = "SELECT id FROM posts WHERE subcategory_id = ? ORDER BY id ASC LIMIT 1";
+        $next_subcategory_name = $subcategories[$next_subcategory_index]['subcategory_name']; // Get the subcategory name
+
+        $next_posts_query = "SELECT id,title FROM posts WHERE subcategory_id = ? ORDER BY id ASC LIMIT 1";
         $stmt = mysqli_prepare($connection, $next_posts_query);
         mysqli_stmt_bind_param($stmt, "i", $next_subcategory_id);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
         $next_post = mysqli_fetch_assoc($result);
         $next_subcategory_first_post_id = $next_post['id'] ?? null;
+        $next_post_title = $next_post['title'] ?? "No next post"; // Get the post title
+
         mysqli_stmt_close($stmt);
     }
 }
@@ -410,9 +504,8 @@ mysqli_close($connection);
                                 echo 'bg-dark border-none text-white'; ?>">
                                 <a class="<?php if ($post_id === $post['id'])
                                     echo 'text-white border-0'; ?>"
-                                    href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory['id']; ?>&post_id=<?php echo $post['id']; ?>">
-
-                                    <i class="fas fa-file-alt "></i> <!-- Example icon for posts -->
+                                    href="post.php?category_name=<?php echo $category_name; ?>&subcategory_name=<?php echo $subcategory['subcategory_name']; ?>&post_title=<?php echo $post['title']; ?>"
+                                    name <i class="fas fa-file-alt "></i> <!-- Example icon for posts -->
                                     <span class="">
                                         <?php echo htmlspecialchars($post['title']); ?>
                                     </span>
@@ -632,25 +725,25 @@ mysqli_close($connection);
                     <div class="prev-next-buttons">
                         <?php if ($current_post_index === 0 && $prev_subcategory_last_post_id): ?>
                             <a class="btn-nav"
-                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $prev_subcategory_id; ?>&post_id=<?php echo $prev_subcategory_last_post_id; ?>">
+                                href="post.php?category_name=<?php echo $category_name; ?>&subcategory_name=<?php echo $prev_subcategory_name; ?>&post_title=<?php echo $prev_post_title; ?>">
                                 <!-- <i class="fa-solid fa-arrow-left mx-1"></i> -->
                                 ❮ Previous</a>
                         <?php elseif ($prev_post_id): ?>
                             <a class="btn-nav"
-                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $prev_post_id; ?>">
+                                href="post.php?category_name=<?php echo $category_name; ?>&subcategory_name=<?php echo $subcategory_name; ?>&post_title=<?php echo $prev_title; ?>">
                                 <!-- <i class="fa-solid fa-arrow-left mx-1"></i> -->
                                 ❮ Previous </a>
                         <?php endif; ?>
 
                         <?php if ($next_post_id): ?>
                             <a class="btn-nav"
-                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $subcategory_id; ?>&post_id=<?php echo $next_post_id; ?>">Next
+                                href="post.php?category_name=<?php echo $category_name; ?>&subcategory_name=<?php echo $subcategory_name; ?>&post_title=<?php echo $next_title; ?>">Next
                                 ❯
                                 <!-- <i class="fa-solid fa-arrow-right mx-1"></i> -->
                             </a>
                         <?php elseif ($next_subcategory_first_post_id): ?>
                             <a class="btn-nav"
-                                href="post.php?category_id=<?php echo $category_id; ?>&subcategory_id=<?php echo $next_subcategory_id; ?>&post_id=<?php echo $next_subcategory_first_post_id; ?>">Next
+                                href="post.php?category_name=<?php echo $category_name; ?>&subcategory_name=<?php echo $next_subcategory_name; ?>&post_title=<?php echo $next_post_title; ?>">Next
                                 ❯
                                 <!-- <i class="fa-solid fa-arrow-right mx-1"></i> -->
                             </a>
@@ -877,14 +970,14 @@ mysqli_close($connection);
                                             showToast('error', 'Comment can not be more than 2000 characters long');
                                         }
                                         commentElement.innerHTML = `
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  <strong class="mx-1  ">${comment.username}</strong>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <small>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 </small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      <strong class="mx-1  ">${comment.username}</strong>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <small>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ${new Date(comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     </small>
                                                  
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 <p style="margin-left: 4px">${comment.comment}</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <p style="margin-left: 4px">${comment.comment}</p>
                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  `;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      `;
 
 
                                         <?php

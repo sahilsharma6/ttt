@@ -66,7 +66,7 @@ $username = $is_logged_in ? htmlspecialchars($_SESSION['username']) : '';
 <nav class="mynav">
     <ul>
         <?php foreach ($categories as $category): ?>
-            <a href="post.php?category_id=<?php echo $category['id']; ?>">
+            <a href="post.php?category_name=<?php echo $category['category_name']; ?>">
                 <li class="">
                     <div class="">
 
